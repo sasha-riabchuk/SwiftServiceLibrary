@@ -51,7 +51,7 @@ public extension ServiceProtocol {
         guard let handleResponse else {
             return try Self.handleResponse(data: modifiedData, urlResponse: modifiedUrlResponse, decoder: decoder)
         }
-        
+
         return try handleResponse(modifiedData, modifiedUrlResponse)
     }
 
@@ -66,36 +66,44 @@ public extension ServiceProtocol {
     ///   - decoder: An object that decodes instances of a data type from JSON objects.
     ///   - handleResponse: Response handler that handles custom object decoding
     /// - Returns:Decoded object
-//    func performUpload<D: Decodable>(authorizationPlugin: AuthorizationPlugin? = nil,
-//                                     baseUrl: URL? = nil,
-//                                     multipartFormData: MultipartFormData,
-//                                     urlSession: URLSession = URLSession.shared,
-//                                     logger: (logger: Logger, domain: LoggerDomain)?,
-//                                     decoder: JSONDecoder = JSONDecoder(),
-//                                     handleResponse: ((Data, URLResponse) throws -> D)? = nil) async throws -> D {
-//        var urlRequest = try urlRequest(authorizationPlugin: authorizationPlugin, baseUrl: baseUrl)
-//
-//        // set cookies
-//        urlRequest.addCookies()
-//
-//        let requestData = try multipartFormData.encode()
-//
-//        urlRequest.headers.add(
-//            .init(name: "Content-Type", value: "multipart/form-data; boundary=\(multipartFormData.boundary)")
-//        )
-//        urlRequest.headers.add(
-//            .init(
-//                name: "Content-Length", value: "\(requestData.count)")
-//        )
-//        if let logger {
-//            logger.logger.verbose(logger.domain, ">>> \(urlRequest.cURL(pretty: false))")
-//        }
-//        let (data, urlResponse) = try await urlSession.upload(for: urlRequest, from: requestData)
-//        guard let handleResponse else {
-//            return try Self.handleResponse(data: data, urlResponse: urlResponse, logger: logger, decoder: decoder)
-//        }
-//        return try handleResponse(data, urlResponse)
-//    }
+    func performUpload<D: Decodable>(authorizationPlugin: AuthorizationPlugin? = nil,
+                                     baseUrl: URL? = nil,
+                                     multipartFormData: MultipartFormData,
+                                     urlSession: URLSession = URLSession.shared,
+                                     decoder: JSONDecoder = JSONDecoder(),
+                                     handleResponse: ((Data, URLResponse) throws -> D)? = nil) async throws -> D {
+        var urlRequest = try urlRequest(authorizationPlugin: authorizationPlugin, baseUrl: baseUrl)
+
+        // Here's where we add interceptors if they exist
+        if let interceptors = interceptors {
+            urlRequest = try await interceptors.performRequestInterception(urlRequest)
+        }
+
+        // set cookies
+        urlRequest.addCookies()
+
+        let requestData = try multipartFormData.encode()
+
+        urlRequest.headers.add(
+            .init(name: "Content-Type", value: "multipart/form-data; boundary=\(multipartFormData.boundary)")
+        )
+        urlRequest.headers.add(
+            .init(name: "Content-Length", value: "\(requestData.count)")
+        )
+
+        print(">>> \(urlRequest.cURL(pretty: false))")
+
+        let (data, urlResponse) = try await urlSession.upload(for: urlRequest, from: requestData)
+
+        // Also adding interceptors for response here
+        let (modifiedData, modifiedUrlResponse) = try await interceptors?.performResponseInterception(urlRequest, urlSession: urlSession) ?? (data, urlResponse)
+
+        // Now, if the handleResponse exists, use it, else go to the default
+        guard let handleResponse = handleResponse else {
+            return try Self.handleResponse(data: modifiedData, urlResponse: modifiedUrlResponse, decoder: decoder)
+        }
+        return try handleResponse(modifiedData, modifiedUrlResponse)
+    }
 
     /// Response handler that handles custom object decoding.
     ///
