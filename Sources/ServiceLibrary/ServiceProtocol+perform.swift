@@ -74,11 +74,6 @@ public extension ServiceProtocol {
                                      handleResponse: ((Data, URLResponse) throws -> D)? = nil) async throws -> D {
         var urlRequest = try urlRequest(authorizationPlugin: authorizationPlugin, baseUrl: baseUrl)
 
-        // Here's where we add interceptors if they exist
-        if let interceptors = interceptors {
-            urlRequest = try await interceptors.performRequestInterception(urlRequest)
-        }
-
         // set cookies
         urlRequest.addCookies()
 
@@ -87,24 +82,18 @@ public extension ServiceProtocol {
         urlRequest.headers.add(
             .init(name: "Content-Type", value: "multipart/form-data; boundary=\(multipartFormData.boundary)")
         )
-//        urlRequest.headers.add(
-//            .init(name: "Content-Length", value: "\(requestData.count)")
-//        )
 
-        urlRequest.httpBody = requestData
-        
+        urlRequest.headers.add(
+            .init(
+                name: "Content-Length", value: "\(requestData.count)")
+        )
+
         print(">>> \(urlRequest.cURL(pretty: false))")
-
         let (data, urlResponse) = try await urlSession.upload(for: urlRequest, from: requestData)
-
-        // Also adding interceptors for response here
-        let (modifiedData, modifiedUrlResponse) = try await interceptors?.performResponseInterception(urlRequest, urlSession: urlSession) ?? (data, urlResponse)
-
-        // Now, if the handleResponse exists, use it, else go to the default
-        guard let handleResponse = handleResponse else {
-            return try Self.handleResponse(data: modifiedData, urlResponse: modifiedUrlResponse, decoder: decoder)
+        guard let handleResponse else {
+            return try Self.handleResponse(data: data, urlResponse: urlResponse, logger: logger, decoder: decoder)
         }
-        return try handleResponse(modifiedData, modifiedUrlResponse)
+        return try handleResponse(data, urlResponse)
     }
 
     /// Response handler that handles custom object decoding.
