@@ -91,7 +91,7 @@ public extension ServiceProtocol {
         print(">>> \(urlRequest.cURL(pretty: false))")
         let (data, urlResponse) = try await urlSession.upload(for: urlRequest, from: requestData)
         guard let handleResponse else {
-            return try Self.handleResponse(data: data, urlResponse: urlResponse, logger: logger, decoder: decoder)
+            return try Self.handleResponse(data: data, urlResponse: urlResponse, decoder: decoder)
         }
         return try handleResponse(data, urlResponse)
     }
