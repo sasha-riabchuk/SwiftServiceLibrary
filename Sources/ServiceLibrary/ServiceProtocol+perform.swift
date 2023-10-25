@@ -91,6 +91,8 @@ public extension ServiceProtocol {
 //            .init(name: "Content-Length", value: "\(requestData.count)")
 //        )
 
+        urlRequest.httpBody = requestData
+        
         print(">>> \(urlRequest.cURL(pretty: false))")
 
         let (data, urlResponse) = try await urlSession.upload(for: urlRequest, from: requestData)
