@@ -87,9 +87,9 @@ public extension ServiceProtocol {
         urlRequest.headers.add(
             .init(name: "Content-Type", value: "multipart/form-data; boundary=\(multipartFormData.boundary)")
         )
-        urlRequest.headers.add(
-            .init(name: "Content-Length", value: "\(requestData.count)")
-        )
+//        urlRequest.headers.add(
+//            .init(name: "Content-Length", value: "\(requestData.count)")
+//        )
 
         print(">>> \(urlRequest.cURL(pretty: false))")
 
