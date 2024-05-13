@@ -3,7 +3,6 @@
 ### Example of using the api service
 
 ```swift
-    let service = KycService.attachments
     let imageData = UIImage(systemName: "person")?.pngData() ?? Data()
     let multipartFormData = MultipartFormData()
 
