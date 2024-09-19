@@ -29,7 +29,8 @@ public extension ServiceProtocol {
                                baseUrl: URL?,
                                urlSession: URLSessionProtocol,
                                decoder: JSONDecoder = .init(),
-                               handleResponse: ((Data, URLResponse) throws -> D)? = nil) async throws -> D {
+                               handleResponse: ((Data, URLResponse) throws -> D)? = nil) async throws -> D
+    {
         var urlRequest = try urlRequest(authorizationPlugin: authorizationPlugin, baseUrl: baseUrl)
 
         guard let interceptors else {
@@ -71,7 +72,8 @@ public extension ServiceProtocol {
                                      multipartFormData: MultipartFormData,
                                      urlSession: URLSession = URLSession.shared,
                                      decoder: JSONDecoder = JSONDecoder(),
-                                     handleResponse: ((Data, URLResponse) throws -> D)? = nil) async throws -> D {
+                                     handleResponse: ((Data, URLResponse) throws -> D)? = nil) async throws -> D
+    {
         var urlRequest = try urlRequest(authorizationPlugin: authorizationPlugin, baseUrl: baseUrl)
 
         // set cookies
@@ -85,7 +87,8 @@ public extension ServiceProtocol {
 
         urlRequest.headers.add(
             .init(
-                name: "Content-Length", value: "\(requestData.count)")
+                name: "Content-Length", value: "\(requestData.count)"
+            )
         )
 
         print(">>> \(urlRequest.cURL(pretty: false))")
@@ -128,7 +131,8 @@ public extension ServiceProtocol {
     static func handleResponse<D: Decodable>(data: Data,
                                              urlResponse: URLResponse,
                                              decoder: JSONDecoder,
-                                             successCodes: Set<Int> = Set(200 ... 299)) throws -> D {
+                                             successCodes: Set<Int> = Set(200 ... 299)) throws -> D
+    {
         guard let response = urlResponse as? HTTPURLResponse else {
             throw ServiceProtocolError.unexpectedResponse(urlResponse as? HTTPURLResponse)
         }
@@ -155,7 +159,7 @@ extension URLRequest {
             return
         }
         let headers = HTTPCookie.requestHeaderFields(with: cookies)
-        headers.forEach { key, value in
+        for (key, value) in headers {
             self.headers.add(name: key, value: value)
         }
     }

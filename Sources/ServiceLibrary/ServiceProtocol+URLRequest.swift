@@ -40,6 +40,8 @@ public extension ServiceProtocol {
         // HTTP method
         request.httpMethod = httpMethod.rawValue
 
+        request.timeoutInterval = 180.0
+
         // Headers
         request.allHTTPHeaderFields = headers
 
