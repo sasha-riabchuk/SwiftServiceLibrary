@@ -46,6 +46,20 @@ let users: [User] = try await MyService.users.perform(
 )
 ```
 
+## Macro Usage (Swift 5.9+)
+
+You can also declare services using the provided macros. Annotate an enum with `@Service` and cases with HTTP method macros:
+
+```swift
+@Service(baseURL: "https://example.com")
+enum MacroService {
+    @Get(endpoint: "/users")
+    case users
+}
+```
+
+The generated implementation conforms to `ServiceProtocol` so you can call `perform` just like the manual example.
+
 For multipart uploads you can use `MultipartFormData`:
 
 ```swift
