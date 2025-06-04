@@ -1,18 +1,20 @@
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
+import Foundation
 
 public struct ServiceMacro: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
         providingMembersOf declaration: some DeclGroupSyntax,
-        in context: some MacroExpansionContext
+        in _: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        guard let argumentList = attribute.argument?.as(LabeledExprListSyntax.self) else {
+        guard let argumentList = attribute.arguments?.as(LabeledExprListSyntax.self) else {
             return []
         }
         guard let baseURLExpr = argumentList.first(where: { $0.label?.text == "baseURL" })?.expression,
-              let baseURLLiteral = baseURLExpr.as(StringLiteralExprSyntax.self)?.segments.first?.description.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+              let baseURLLiteral = baseURLExpr.as(StringLiteralExprSyntax.self)?.segments.first?.description
+              .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
         else {
             return []
         }
@@ -27,47 +29,44 @@ public struct ServiceMacro: MemberMacro {
         if let enumDecl = declaration.as(EnumDeclSyntax.self) {
             for member in enumDecl.memberBlock.members {
                 guard let caseDecl = member.decl.as(EnumCaseDeclSyntax.self) else { continue }
-                for element in caseDecl.elements {
-                    let caseName = element.identifier.text
-                    guard let attrs = element.attributes else { continue }
-                    for attr in attrs {
-                        guard let attrSyntax = attr.as(AttributeSyntax.self) else { continue }
-                        let name = attrSyntax.attributeName.description.trimmingCharacters(in: .whitespacesAndNewlines)
+                for attr in caseDecl.attributes {
+                    guard let attrSyntax = attr.as(AttributeSyntax.self) else { continue }
+                    let name = attrSyntax.attributeName.description.trimmingCharacters(in: .whitespacesAndNewlines)
+                    switch name {
+                    case "Get", "Post", "Put", "Delete", "Patch":
+                        guard let argList = attrSyntax.arguments?.as(LabeledExprListSyntax.self),
+                              let endpointExpr = argList.first?.expression,
+                              let endpointLiteral = endpointExpr.as(StringLiteralExprSyntax.self)?.segments.first?.description
+                              .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+                        else { continue }
+                        pathCases.append("case .\\(caseName): return \\\"\\(endpointLiteral)\\\"")
+                        let method: String
                         switch name {
-                        case "Get", "Post", "Put", "Delete", "Patch":
-                            guard let argList = attrSyntax.argument?.as(LabeledExprListSyntax.self),
-                                  let endpointExpr = argList.first?.expression,
-                                  let endpointLiteral = endpointExpr.as(StringLiteralExprSyntax.self)?.segments.first?.description.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
-                            else { continue }
-                            pathCases.append("case .\\(caseName): return \\\"\\(endpointLiteral)\\\"")
-                            let method: String
-                            switch name {
-                            case "Get": method = ".get"
-                            case "Post": method = ".post"
-                            case "Put": method = ".put"
-                            case "Delete": method = ".delete"
-                            default: method = ".patch"
-                            }
-                            methodCases.append("case .\\(caseName): return \(method)")
-                        case "Header":
-                            if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
-                                headerCases.append("case .\\(caseName): return \(arg)")
-                            }
-                        case "Query":
-                            if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
-                                queryCases.append("case .\\(caseName): return \(arg)")
-                            }
-                        case "Params":
-                            if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
-                                paramsCases.append("case .\\(caseName): return \(arg)")
-                            }
-                        case "Interceptor":
-                            if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
-                                interceptorCases.append("case .\\(caseName): return \(arg)")
-                            }
-                        default:
-                            continue
+                        case "Get": method = ".get"
+                        case "Post": method = ".post"
+                        case "Put": method = ".put"
+                        case "Delete": method = ".delete"
+                        default: method = ".patch"
                         }
+                        methodCases.append("case .\\(caseName): return \(method)")
+                    case "Header":
+                        if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
+                            headerCases.append("case .\\(caseName): return \(arg)")
+                        }
+                    case "Query":
+                        if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
+                            queryCases.append("case .\\(caseName): return \(arg)")
+                        }
+                    case "Params":
+                        if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
+                            paramsCases.append("case .\\(caseName): return \(arg)")
+                        }
+                    case "Interceptor":
+                        if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
+                            interceptorCases.append("case .\\(caseName): return \(arg)")
+                        }
+                    default:
+                        continue
                     }
                 }
             }
@@ -160,42 +159,74 @@ public struct ServiceMacro: MemberMacro {
 
 public struct GetMacro: PeerMacro {
     public static func expansion(
-        of node: AttributeSyntax,
-        providingPeersOf declaration: some DeclSyntax,
-        in context: some MacroExpansionContext
+        of _: AttributeSyntax,
+        providingPeersOf _: some DeclSyntaxProtocol,
+        in _: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         []
     }
 }
 
 public struct PostMacro: PeerMacro {
-    public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntax, in context: some MacroExpansionContext) throws -> [DeclSyntax] { [] }
+    public static func expansion(
+        of _: AttributeSyntax,
+        providingPeersOf _: some DeclSyntaxProtocol,
+        in _: some MacroExpansionContext
+    ) throws -> [DeclSyntax] { [] }
 }
 
 public struct PutMacro: PeerMacro {
-    public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntax, in context: some MacroExpansionContext) throws -> [DeclSyntax] { [] }
+    public static func expansion(
+        of _: AttributeSyntax,
+        providingPeersOf _: some DeclSyntaxProtocol,
+        in _: some MacroExpansionContext
+    ) throws -> [DeclSyntax] { [] }
 }
 
 public struct DeleteMacro: PeerMacro {
-    public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntax, in context: some MacroExpansionContext) throws -> [DeclSyntax] { [] }
+    public static func expansion(
+        of _: AttributeSyntax,
+        providingPeersOf _: some DeclSyntaxProtocol,
+        in _: some MacroExpansionContext
+    ) throws -> [DeclSyntax] { [] }
 }
 
 public struct PatchMacro: PeerMacro {
-    public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntax, in context: some MacroExpansionContext) throws -> [DeclSyntax] { [] }
+    public static func expansion(
+        of _: AttributeSyntax,
+        providingPeersOf _: some DeclSyntaxProtocol,
+        in _: some MacroExpansionContext
+    ) throws -> [DeclSyntax] { [] }
 }
 
 public struct HeaderMacro: PeerMacro {
-    public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntax, in context: some MacroExpansionContext) throws -> [DeclSyntax] { [] }
+    public static func expansion(
+        of _: AttributeSyntax,
+        providingPeersOf _: some DeclSyntaxProtocol,
+        in _: some MacroExpansionContext
+    ) throws -> [DeclSyntax] { [] }
 }
 
 public struct QueryMacro: PeerMacro {
-    public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntax, in context: some MacroExpansionContext) throws -> [DeclSyntax] { [] }
+    public static func expansion(
+        of _: AttributeSyntax,
+        providingPeersOf _: some DeclSyntaxProtocol,
+        in _: some MacroExpansionContext
+    ) throws -> [DeclSyntax] { [] }
 }
 
 public struct ParamsMacro: PeerMacro {
-    public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntax, in context: some MacroExpansionContext) throws -> [DeclSyntax] { [] }
+    public static func expansion(
+        of _: AttributeSyntax,
+        providingPeersOf _: some DeclSyntaxProtocol,
+        in _: some MacroExpansionContext
+    ) throws -> [DeclSyntax] { [] }
 }
 
 public struct InterceptorMacro: PeerMacro {
-    public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntax, in context: some MacroExpansionContext) throws -> [DeclSyntax] { [] }
+    public static func expansion(
+        of _: AttributeSyntax,
+        providingPeersOf _: some DeclSyntaxProtocol,
+        in _: some MacroExpansionContext
+    ) throws -> [DeclSyntax] { [] }
 }
