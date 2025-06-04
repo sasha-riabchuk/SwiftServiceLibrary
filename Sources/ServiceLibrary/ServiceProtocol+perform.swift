@@ -1,10 +1,3 @@
-//
-//  ServiceProtocol+perform.swift
-//
-//
-//  Created by Ondřej Veselý on 01.12.2022.
-//
-
 import Combine
 import Foundation
 
@@ -44,7 +37,6 @@ public extension ServiceProtocol {
         // set cookies
         urlRequest.addCookies()
 
-        print(">>> \(urlRequest.cURL(pretty: false))")
 
         let request = try await interceptors.performRequestInterception(urlRequest)
         let (modifiedData, modifiedUrlResponse) = try await interceptors.performResponseInterception(request, urlSession: urlSession)
@@ -91,7 +83,6 @@ public extension ServiceProtocol {
             )
         )
 
-        print(">>> \(urlRequest.cURL(pretty: false))")
         let (data, urlResponse) = try await urlSession.upload(for: urlRequest, from: requestData)
         guard let handleResponse else {
             return try Self.handleResponse(data: data, urlResponse: urlResponse, decoder: decoder)
@@ -138,15 +129,12 @@ public extension ServiceProtocol {
         }
 
         guard successCodes.contains(response.statusCode) else {
-            print("<<< \(urlResponse)")
             throw ServiceProtocolError.responseCode(response.statusCode)
         }
         do {
             let string = String(data: data, encoding: .utf8)
-            print("<<< \(response) data: \(string ?? "nil")")
             return try decoder.decode(D.self, from: data)
         } catch {
-            print(String(data: data, encoding: .utf8))
             throw error
         }
     }

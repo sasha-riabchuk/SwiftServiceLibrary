@@ -1,14 +1,6 @@
-//
-//  URL+ServiceProtocol.swift
-//
-//
-//  Created by Ondřej Veselý on 01.12.2022.
-//
-
 import Foundation
 
 extension URL {
-    /// Initialize URL from `ServiceProtocol`.
     public init?<T: ServiceProtocol>(service: T, baseUrl: URL? = nil) {
         guard let baseUrl = baseUrl ?? service.baseURL else {
             return nil

@@ -1,10 +1,3 @@
-//
-//  URLRequest+cURL.swift
-//
-//
-//  Created by Ondřej Veselý on 11.12.2022.
-//
-
 import Foundation
 
 public extension URLRequest {

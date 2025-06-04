@@ -1,14 +1,7 @@
-//
-//  ServiceProtocol+URLRequest.swift
-//
-//
-//  Created by Ondřej Veselý on 01.12.2022.
-//
-
 import Foundation
 
 public extension ServiceProtocol {
-    /// A value that identifies the location of a resource for this service
+    /// A value that identifies the location of a resource for this service.
     func url(baseUrl: URL? = nil) -> URL? {
         guard let url = URL(service: self, baseUrl: baseUrl) else { return nil }
         guard let queryItems else {

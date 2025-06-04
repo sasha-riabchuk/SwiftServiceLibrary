@@ -1,10 +1,3 @@
-//
-//  Interceptor.swift
-//
-//
-//  Created by Oleksandr Riabchuk on 24.07.2023.
-//
-
 import Foundation
 
 public protocol RequestInterceptor {

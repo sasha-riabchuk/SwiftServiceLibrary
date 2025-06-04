@@ -1,13 +1,5 @@
-//
-//  ServiceProtocol.swift
-//
-//
-//  Created by Ondřej Veselý on 01.12.2022.
-//
-
 import Foundation
 
-/// The protocol used to define the specifications necessary for a `Service`.
 public protocol ServiceProtocol {
     /// The target's base `URL`.
     var baseURL: URL? { get }

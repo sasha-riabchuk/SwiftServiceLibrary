@@ -1,13 +1,5 @@
-//
-//  HTTPHeader.swift
-//
-//
-//  Created by Ondřej Veselý on 09.01.2023.
-//
-
 import Foundation
 
-// MARK: - HTTPHeader
 
 /// A representation of a single HTTP header's name / value pair.
 public struct HTTPHeader: Hashable {

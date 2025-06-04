@@ -1,10 +1,3 @@
-//
-//  Future+Async.swift
-//
-//
-//  Created by Ondřej Veselý on 16.12.2022.
-//
-
 import Combine
 
 extension Future where Failure == Error {

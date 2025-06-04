@@ -1,10 +1,5 @@
-//
-//  Resource.swift
-//
-//
-//  Created by Ondřej Veselý on 08.01.2023.
-//
-
+/// Represents a backend resource used for token authorization.
 public enum Resource: String, Equatable {
+    /// General API resource.
     case api
 }

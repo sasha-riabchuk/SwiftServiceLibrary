@@ -1,14 +1,6 @@
-//
-//  ServiceProtocol+defaultHeaders.swift
-//  
-//
-//  Created by Ondřej Veselý on 29.05.2023.
-//
-
 import Foundation
 
 public extension ServiceProtocol {
-    /// Returns the default headers for the HTTP request.
     ///
     /// This function configures the content type of the request based on the encoding of the parameters
     /// and the specified string encoding.
