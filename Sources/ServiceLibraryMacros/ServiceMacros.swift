@@ -189,11 +189,11 @@ public struct ServiceMacro: MemberMacro, PeerMacro {
     }
 }
 
-public struct GetMacro: PeerMacro {
+public struct GetMacro: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
-        providingPeersOf declaration: some DeclSyntaxProtocol,
-        in _: some MacroExpansionContext
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
               let caseName = caseDecl.elements.first?.name.text,
@@ -206,11 +206,11 @@ public struct GetMacro: PeerMacro {
     }
 }
 
-public struct PostMacro: PeerMacro {
+public struct PostMacro: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
-        providingPeersOf declaration: some DeclSyntaxProtocol,
-        in _: some MacroExpansionContext
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
               let caseName = caseDecl.elements.first?.name.text,
@@ -223,11 +223,11 @@ public struct PostMacro: PeerMacro {
     }
 }
 
-public struct PutMacro: PeerMacro {
+public struct PutMacro: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
-        providingPeersOf declaration: some DeclSyntaxProtocol,
-        in _: some MacroExpansionContext
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
               let caseName = caseDecl.elements.first?.name.text,
@@ -240,11 +240,11 @@ public struct PutMacro: PeerMacro {
     }
 }
 
-public struct DeleteMacro: PeerMacro {
+public struct DeleteMacro: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
-        providingPeersOf declaration: some DeclSyntaxProtocol,
-        in _: some MacroExpansionContext
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
               let caseName = caseDecl.elements.first?.name.text,
@@ -257,11 +257,11 @@ public struct DeleteMacro: PeerMacro {
     }
 }
 
-public struct PatchMacro: PeerMacro {
+public struct PatchMacro: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
-        providingPeersOf declaration: some DeclSyntaxProtocol,
-        in _: some MacroExpansionContext
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
               let caseName = caseDecl.elements.first?.name.text,
@@ -274,11 +274,11 @@ public struct PatchMacro: PeerMacro {
     }
 }
 
-public struct HeaderMacro: PeerMacro {
+public struct HeaderMacro: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
-        providingPeersOf declaration: some DeclSyntaxProtocol,
-        in _: some MacroExpansionContext
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
               let caseName = caseDecl.elements.first?.name.text,
@@ -295,11 +295,11 @@ public struct HeaderMacro: PeerMacro {
     }
 }
 
-public struct QueryMacro: PeerMacro {
+public struct QueryMacro: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
-        providingPeersOf declaration: some DeclSyntaxProtocol,
-        in _: some MacroExpansionContext
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
               let caseName = caseDecl.elements.first?.name.text,
@@ -316,11 +316,11 @@ public struct QueryMacro: PeerMacro {
     }
 }
 
-public struct ParamsMacro: PeerMacro {
+public struct ParamsMacro: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
-        providingPeersOf declaration: some DeclSyntaxProtocol,
-        in _: some MacroExpansionContext
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
               let caseName = caseDecl.elements.first?.name.text,
@@ -354,11 +354,11 @@ public struct ParamsMacro: PeerMacro {
     }
 }
 
-public struct InterceptorMacro: PeerMacro {
+public struct InterceptorMacro: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
-        providingPeersOf declaration: some DeclSyntaxProtocol,
-        in _: some MacroExpansionContext
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
               let caseName = caseDecl.elements.first?.name.text,

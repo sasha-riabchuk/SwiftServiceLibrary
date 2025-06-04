@@ -8,55 +8,55 @@ public macro Service(baseURL: String) = #externalMacro(
     type: "ServiceMacro"
 )
 
-@attached(peer)
+@attached(member, names: arbitrary)
 public macro Get(endpoint: String) = #externalMacro(
     module: "ServiceLibraryMacros",
     type: "GetMacro"
 )
 
-@attached(peer)
+@attached(member, names: arbitrary)
 public macro Post(endpoint: String) = #externalMacro(
     module: "ServiceLibraryMacros",
     type: "PostMacro"
 )
 
-@attached(peer)
+@attached(member, names: arbitrary)
 public macro Put(endpoint: String) = #externalMacro(
     module: "ServiceLibraryMacros",
     type: "PutMacro"
 )
 
-@attached(peer)
+@attached(member, names: arbitrary)
 public macro Delete(endpoint: String) = #externalMacro(
     module: "ServiceLibraryMacros",
     type: "DeleteMacro"
 )
 
-@attached(peer)
+@attached(member, names: arbitrary)
 public macro Patch(endpoint: String) = #externalMacro(
     module: "ServiceLibraryMacros",
     type: "PatchMacro"
 )
 
-@attached(peer)
-public macro Header(_ values: [Parameter] = []) = #externalMacro(
+@attached(member, names: arbitrary)
+public macro Header(_ values: [String: Sendable]) = #externalMacro(
     module: "ServiceLibraryMacros",
     type: "HeaderMacro"
 )
 
-@attached(peer)
-public macro Query(_ values: [Parameter] = []) = #externalMacro(
+@attached(member, names: arbitrary)
+public macro Query(_ values: [String: Sendable]) = #externalMacro(
     module: "ServiceLibraryMacros",
     type: "QueryMacro"
 )
 
-@attached(peer)
+@attached(member, names: arbitrary)
 public macro Params(_ values: [Parameter] = [], encoding: BodyParameterEncoding? = nil) = #externalMacro(
     module: "ServiceLibraryMacros",
     type: "ParamsMacro"
 )
 
-@attached(peer)
+@attached(member, names: arbitrary)
 public macro Interceptor(_ interceptors: [Interceptor]) = #externalMacro( // Changed to [Interceptor]
     module: "ServiceLibraryMacros",
     type: "InterceptorMacro"
