@@ -2,7 +2,7 @@
 import ServiceLibraryMacros
 #endif
 
-@attached(member)
+@attached(member, peer)
 public macro Service(baseURL: String) = #externalMacro(module: "ServiceLibraryMacros", type: "ServiceMacro")
 
 @attached(peer)
@@ -21,13 +21,13 @@ public macro Delete(endpoint: String) = #externalMacro(module: "ServiceLibraryMa
 public macro Patch(endpoint: String) = #externalMacro(module: "ServiceLibraryMacros", type: "PatchMacro")
 
 @attached(peer)
-public macro Header(_ value: String) = #externalMacro(module: "ServiceLibraryMacros", type: "HeaderMacro")
+public macro Header(name: String, value: String) = #externalMacro(module: "ServiceLibraryMacros", type: "HeaderMacro")
 
 @attached(peer)
-public macro Query(_ value: String) = #externalMacro(module: "ServiceLibraryMacros", type: "QueryMacro")
+public macro Query(name: String, value: String) = #externalMacro(module: "ServiceLibraryMacros", type: "QueryMacro")
 
 @attached(peer)
-public macro Params(_ value: String) = #externalMacro(module: "ServiceLibraryMacros", type: "ParamsMacro")
+public macro Params(key: String, value: Any) = #externalMacro(module: "ServiceLibraryMacros", type: "ParamsMacro")
 
 @attached(peer)
-public macro Interceptor(_ value: String) = #externalMacro(module: "ServiceLibraryMacros", type: "InterceptorMacro")
+public macro Interceptor(_ interceptor: Interceptor) = #externalMacro(module: "ServiceLibraryMacros", type: "InterceptorMacro")
