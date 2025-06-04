@@ -1,6 +1,6 @@
 import Foundation
 
-public struct InterceptorsStorage {
+public struct InterceptorsStorage: Sendable {
     private var interceptors: [Interceptor]
 
     public init(interceptors: [Interceptor]) {

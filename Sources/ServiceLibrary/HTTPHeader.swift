@@ -1,7 +1,7 @@
 import Foundation
 
 /// A representation of a single HTTP header's name / value pair.
-public struct HTTPHeader: Hashable {
+public struct HTTPHeader: Hashable, Sendable {
     /// Name of the header.
     public let name: String
 

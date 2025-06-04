@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Interceptor {
+public protocol Interceptor: Sendable {
     func adapt(
         _ urlRequest: URLRequest,
         for session: URLSessionProtocol

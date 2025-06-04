@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ServiceProtocolError: Error {
+public enum ServiceProtocolError: Error, Sendable {
     case invalidURL
     /// ResponseCode
     case responseCode(Int)

@@ -3,7 +3,7 @@ import Foundation
 @testable import ServiceLibrary
 import XCTest
 
-enum MockService {
+enum MockService: Sendable {
     case getUsers
 }
 
