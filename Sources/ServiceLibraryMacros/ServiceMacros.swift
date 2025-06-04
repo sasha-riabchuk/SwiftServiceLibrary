@@ -3,7 +3,7 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 import Foundation
 
-public struct ServiceMacro: MemberMacro {
+public struct ServiceMacro: MemberMacro, PeerMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
         providingMembersOf declaration: some DeclGroupSyntax,
@@ -50,20 +50,26 @@ public struct ServiceMacro: MemberMacro {
                         }
                         methodCases.append("case .\\(caseName): return \(method)")
                     case "Header":
-                        if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
-                            headerCases.append("case .\\(caseName): return \(arg)")
+                        if let args = attrSyntax.arguments?.as(LabeledExprListSyntax.self),
+                           let nameExpr = args.first(where: { $0.label?.text == "name" })?.expression,
+                           let valueExpr = args.first(where: { $0.label?.text == "value" })?.expression {
+                            headerCases.append("case .\\(caseName): return [\\(nameExpr): \\(valueExpr)]")
                         }
                     case "Query":
-                        if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
-                            queryCases.append("case .\\(caseName): return \(arg)")
+                        if let args = attrSyntax.arguments?.as(LabeledExprListSyntax.self),
+                           let nameExpr = args.first(where: { $0.label?.text == "name" })?.expression,
+                           let valueExpr = args.first(where: { $0.label?.text == "value" })?.expression {
+                            queryCases.append("case .\\(caseName): return [URLQueryItem(name: \\(nameExpr), value: \\(valueExpr))]")
                         }
                     case "Params":
-                        if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
-                            paramsCases.append("case .\\(caseName): return \(arg)")
+                        if let args = attrSyntax.arguments?.as(LabeledExprListSyntax.self),
+                           let keyExpr = args.first(where: { $0.label?.text == "key" })?.expression,
+                           let valueExpr = args.first(where: { $0.label?.text == "value" })?.expression {
+                            paramsCases.append("case .\\(caseName): return [\\(keyExpr): \\(valueExpr)]")
                         }
                     case "Interceptor":
                         if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
-                            interceptorCases.append("case .\\(caseName): return \(arg)")
+                            interceptorCases.append("case .\\(caseName): return InterceptorsStorage(interceptors: [\\(arg)])")
                         }
                     default:
                         continue
@@ -154,6 +160,19 @@ public struct ServiceMacro: MemberMacro {
             parametersEncodingMember,
             interceptorsMember
         ]
+    }
+
+    public static func expansion(
+        of _: AttributeSyntax,
+        providingPeersOf declaration: some DeclSyntaxProtocol,
+        in _: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
+        guard let enumDecl = declaration.as(EnumDeclSyntax.self) else {
+            return []
+        }
+        let enumName = enumDecl.name.text
+        let extensionDecl: DeclSyntax = "extension \(raw: enumName): ServiceProtocol {}"
+        return [extensionDecl]
     }
 }
 
