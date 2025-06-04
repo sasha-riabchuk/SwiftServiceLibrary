@@ -59,7 +59,8 @@ public struct ServiceMacro: MemberMacro, PeerMacro {
                         if let args = attrSyntax.arguments?.as(LabeledExprListSyntax.self),
                            let nameExpr = args.first(where: { $0.label?.text == "name" })?.expression,
                            let valueExpr = args.first(where: { $0.label?.text == "value" })?.expression {
-                            queryCases.append("case .\\(caseName): return [URLQueryItem(name: \\(nameExpr), value: \\(valueExpr))]")
+                            queryCases
+                                .append("case .\\(caseName): return [URLQueryItem(name: \\(nameExpr), value: \\(valueExpr))]")
                         }
                     case "Params":
                         if let args = attrSyntax.arguments?.as(LabeledExprListSyntax.self),
@@ -78,7 +79,9 @@ public struct ServiceMacro: MemberMacro, PeerMacro {
             }
         }
 
-        let baseURLMember: DeclSyntax = "public var baseURL: URL? { URL(string: \\\"\\(baseURLLiteral)\\\") }"
+        let baseURLMember: DeclSyntax = """
+        public var baseURL: URL? { URL(string: "\(raw: baseURLLiteral)") }
+        """
 
         let pathMember: DeclSyntax = """
         public var path: String? {
