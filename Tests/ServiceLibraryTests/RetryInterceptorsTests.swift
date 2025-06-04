@@ -1,10 +1,3 @@
-//
-//  RetryInterceptorsTests.swift
-//
-//
-//  Created by Oleksandr Riabchuk on 18.08.2023.
-//
-
 import Combine
 import Foundation
 @testable import ServiceLibrary
@@ -36,7 +29,6 @@ class RetryInterceptorTests: XCTestCase {
                 urlSession: urlSession)
             XCTFail("Perform should throw an error")
         } catch {
-            print(error)
         }
 
         XCTAssertEqual((urlSession as! MockURLSession).dataTaskCallCount, 5)

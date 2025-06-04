@@ -1,10 +1,5 @@
-//
-//  ServiceProtocolAuthorizable.swift
-//
-//
-//  Created by Ondřej Veselý on 08.01.2023.
-//
-
+/// Describes a service capable of providing authorization configuration.
 public protocol ServiceProtocolAuthorizable {
+    /// Returns the ``AuthorizableType`` required by the service.
     func authorizableType() -> AuthorizableType
 }

@@ -1,16 +1,8 @@
-//
-//  HttpMethod.swift
-//
-//
-//  Created by Ondřej Veselý on 01.12.2022.
-//
-
 import Foundation
 
 /// HTTP method definitions.
-///
 /// See https://tools.ietf.org/html/rfc7231#section-4.3
-public enum HttpMethod: String {
+public enum HTTPMethod: String {
     case options = "OPTIONS"
     case get = "GET"
     case head = "HEAD"

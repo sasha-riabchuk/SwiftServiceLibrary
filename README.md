@@ -1,24 +1,63 @@
 # ServiceLibrary
 
-### Example of using the api service
+Swift micro library providing simple HTTP service abstractions. It defines a `ServiceProtocol` describing an endpoint and utilities for building and executing `URLRequest`s. It also includes helpers for multipart uploads and request interception.
+
+## Installation
+
+Add the package to your `Package.swift` dependencies:
 
 ```swift
-    let imageData = UIImage(systemName: "person")?.pngData() ?? Data()
-    let multipartFormData = MultipartFormData()
-
-    multipartFormData.append(imageData, withName: "image1" , fileName: "person.png", mimeType: "image/png")
-    multipartFormData.append(imageData, withName: "image2" , fileName: "person2.png", mimeType: "image/png")
-    
-    let parameters: [String: String] = ["name": "Johnny Applesee", "gender": "Male"]
-
-    for (key, value) in parameters {
-        multipartFormData.append(value.data(using: .utf8) ?? Data(), withName: key)
-    }
-
-    let string: String = try await service
-        .performUpload(multipartFormData: multipartFormData,
-                       handleResponse: { data, URLResponse in
-            String(data: data, encoding: .utf8) ?? ""
-        })
+.package(url: "https://github.com/yourOrg/ServiceLibrary.git", from: "1.0.0")
 ```
 
+Then add `ServiceLibrary` as a dependency for your target.
+
+## Basic Usage
+
+Create an enum describing your API and conform it to `ServiceProtocol`:
+
+```swift
+enum MyService {
+    case users
+}
+
+extension MyService: ServiceProtocol {
+    var baseURL: URL? { URL(string: "https://example.com") }
+    var path: String? {
+        switch self { case .users: return "/users" }
+    }
+    var httpMethod: HttpMethod { .get }
+    var headers: [String: String]? { defaultHeaders().dictionary }
+    var queryItems: [URLQueryItem]? { nil }
+    var parameters: [String: Any]? { nil }
+    var parametersEncoding: BodyParameterEncoding? { .json }
+    var interceptors: InterceptorsStorage? { nil }
+}
+```
+
+Perform a request using a `URLSession`:
+
+```swift
+let session = URLSession.shared
+let users: [User] = try await MyService.users.perform(
+    authorizationPlugin: nil,
+    baseUrl: nil,
+    urlSession: session
+)
+```
+
+For multipart uploads you can use `MultipartFormData`:
+
+```swift
+let data = Data() // your file data
+var form = MultipartFormData()
+form.append(data, withName: "file", fileName: "file.dat", mimeType: "application/octet-stream")
+let response: String = try await MyService.users.performUpload(
+    multipartFormData: form,
+    urlSession: session
+)
+```
+
+## License
+
+MIT

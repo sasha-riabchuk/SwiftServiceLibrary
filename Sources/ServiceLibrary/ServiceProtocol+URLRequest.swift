@@ -1,15 +1,8 @@
-//
-//  ServiceProtocol+URLRequest.swift
-//
-//
-//  Created by Ondřej Veselý on 01.12.2022.
-//
-
 import Foundation
 
-public extension ServiceProtocol {
-    /// A value that identifies the location of a resource for this service
-    func url(baseUrl: URL? = nil) -> URL? {
+extension ServiceProtocol {
+    /// A value that identifies the location of a resource for this service.
+    public func url(baseUrl: URL? = nil) -> URL? {
         guard let url = URL(service: self, baseUrl: baseUrl) else { return nil }
         guard let queryItems else {
             return url
@@ -18,14 +11,13 @@ public extension ServiceProtocol {
     }
 
     /// A URL request for this service
-    func urlRequest(authorizationPlugin: AuthorizationPlugin? = nil, baseUrl: URL? = nil) throws -> URLRequest {
+    public func urlRequest(authorizationPlugin: AuthorizationPlugin? = nil, baseUrl: URL? = nil) throws -> URLRequest {
         guard let url = url(baseUrl: baseUrl) else {
             throw ServiceProtocolError.invalidURL(self)
         }
 
         var request = URLRequest(url: url)
 
-        // HTTP Body
         if parameters != nil, let parametersEncoding {
             switch parametersEncoding {
             case .json:
@@ -34,6 +26,9 @@ public extension ServiceProtocol {
                 // x-www-form-urlencoded
                 request.setValue(parametersEncoding.rawValue, forHTTPHeaderField: "Content-Type")
                 request.httpBody = try formUrlEncodedParameters()
+            case .multipartFormData:
+                // multipart/form-data
+                request.setValue(parametersEncoding.rawValue, forHTTPHeaderField: "Content-Type")
             }
         }
 

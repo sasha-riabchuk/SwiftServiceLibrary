@@ -1,7 +1,6 @@
 import Foundation
 
 public enum MultipartEncodingError: Error {
-    /// The expected byte count to read. The actual byte count read.
     case unexpectedInputStreamLength(bytesExpected: UInt64, bytesRead: UInt64)
 
     /// The `fileURL` provided for reading an encodable body part isn't a file `URL`.

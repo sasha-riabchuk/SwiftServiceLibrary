@@ -1,12 +1,9 @@
-//
-//  AuthorizableType.swift
-//
-//
-//  Created by Ondřej Veselý on 08.01.2023.
-//
-
+/// Defines the authorization requirements for a service.
 public enum AuthorizableType: Equatable {
+    /// No authorization required.
     case none
-    case token0
-    case token(Resource)
+    /// Uses a token without a specific resource.
+    case token
+    /// Uses a api key for authorization.
+    case apiKey
 }
