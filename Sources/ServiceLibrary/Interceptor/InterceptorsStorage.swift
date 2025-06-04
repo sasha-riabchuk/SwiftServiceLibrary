@@ -7,6 +7,8 @@ public struct InterceptorsStorage: Sendable {
         self.interceptors = interceptors
     }
 
+    public func interceptorsCount() -> Int { interceptors.count }
+
     func performRequestInterception(_ request: URLRequest) async throws -> URLRequest {
         var modifiedRequest = request
         for interceptor in interceptors {

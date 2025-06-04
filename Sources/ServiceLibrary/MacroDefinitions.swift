@@ -51,13 +51,13 @@ public macro Query(_ values: [Parameter] = []) = #externalMacro(
 )
 
 @attached(peer)
-public macro Params(_ values: [Parameter] = []) = #externalMacro(
+public macro Params(_ values: [Parameter] = [], encoding: BodyParameterEncoding? = nil) = #externalMacro(
     module: "ServiceLibraryMacros",
     type: "ParamsMacro"
 )
 
 @attached(peer)
-public macro Interceptor(_ interceptor: Interceptor) = #externalMacro(
+public macro Interceptor(_ interceptors: [Interceptor]) = #externalMacro( // Changed to [Interceptor]
     module: "ServiceLibraryMacros",
     type: "InterceptorMacro"
 )

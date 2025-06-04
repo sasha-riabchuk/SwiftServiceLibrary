@@ -25,6 +25,7 @@ public struct ServiceMacro: MemberMacro, PeerMacro {
         var queryCases: [String] = []
         var paramsCases: [String] = []
         var interceptorCases: [String] = []
+        var parametersEncodingCases: [String] = []
 
         if let enumDecl = declaration.as(EnumDeclSyntax.self) {
             for member in enumDecl.memberBlock.members {
@@ -55,6 +56,8 @@ public struct ServiceMacro: MemberMacro, PeerMacro {
                         queryCases.append("case .\(caseName): return Self.\(caseName)_queryItems")
                     case "Params":
                         paramsCases.append("case .\(caseName): return Self.\(caseName)_parameters")
+                        // Add this line for parameter encoding:
+                        parametersEncodingCases.append("case .\(caseName): return Self.\(caseName)_parametersEncoding ?? .json")
                     case "Interceptor":
                         interceptorCases.append("case .\(caseName): return Self.\(caseName)_interceptors")
                     default:
@@ -133,7 +136,19 @@ public struct ServiceMacro: MemberMacro, PeerMacro {
             """
         }
 
-        let parametersEncodingMember: DeclSyntax = "public var parametersEncoding: BodyParameterEncoding? { nil }"
+        let parametersEncodingMember: DeclSyntax
+        if parametersEncodingCases.isEmpty {
+            parametersEncodingMember = "public var parametersEncoding: BodyParameterEncoding? { nil }"
+        } else {
+            parametersEncodingMember = """
+            public var parametersEncoding: BodyParameterEncoding? {
+                switch self {
+            \(raw: parametersEncodingCases.joined(separator: "\n"))
+                default: return nil // Default for cases without @Params
+                }
+            }
+            """
+        }
 
         let interceptorsMember: DeclSyntax
         if interceptorCases.isEmpty {
@@ -309,16 +324,33 @@ public struct ParamsMacro: PeerMacro {
     ) throws -> [DeclSyntax] {
         guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
               let caseName = caseDecl.elements.first?.name.text,
-              let argList = attribute.arguments?.as(LabeledExprListSyntax.self),
-              let valuesExpr = argList.first?.expression
+              let argList = attribute.arguments?.as(LabeledExprListSyntax.self)
         else { return [] }
 
-        let paramsVar: DeclSyntax = """
-        static var \(raw: caseName)_parameters: [String: Any]? {
-            Dictionary(uniqueKeysWithValues: \(valuesExpr).map { ($0.key, $0.value) })
+        var declarations: [DeclSyntax] = []
+
+        // Parameters variable
+        if let valuesExpr = argList.first(where: { $0.label == nil || $0.label?.text == "_"})?.expression {
+            let paramsVar: DeclSyntax = """
+            static var \(raw: caseName)_parameters: [String: Any]? {
+                Dictionary(uniqueKeysWithValues: \(valuesExpr).map { ($0.key, $0.value) })
+            }
+            """
+            declarations.append(paramsVar)
+        }
+
+        // Parameters encoding variable
+        let encodingExpr = argList.first(where: { $0.label?.text == "encoding" })?.expression
+        let encodingVarValue = encodingExpr != nil ? "\(encodingExpr!)" : "nil"
+
+        let encodingVar: DeclSyntax = """
+        static var \(raw: caseName)_parametersEncoding: BodyParameterEncoding? {
+            \(raw: encodingVarValue)
         }
         """
-        return [paramsVar]
+        declarations.append(encodingVar)
+
+        return declarations
     }
 }
 
@@ -331,12 +363,12 @@ public struct InterceptorMacro: PeerMacro {
         guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
               let caseName = caseDecl.elements.first?.name.text,
               let argList = attribute.arguments?.as(LabeledExprListSyntax.self),
-              let interceptorExpr = argList.first?.expression
+              let interceptorsArrayExpr = argList.first?.expression // This should be the array
         else { return [] }
 
         let interceptorVar: DeclSyntax = """
         static var \(raw: caseName)_interceptors: InterceptorsStorage? {
-            InterceptorsStorage(interceptors: [\(interceptorExpr)])
+            InterceptorsStorage(interceptors: \(interceptorsArrayExpr)) // Pass the array directly
         }
         """
         return [interceptorVar]
