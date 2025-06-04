@@ -6,8 +6,8 @@ public enum ServiceProtocolError: Error {
     case responseCode(Int)
     /// Unexpected Response
     case unexpectedResponse(HTTPURLResponse?)
-    
+
     case anotherError
-    
+
     case interceptorError
 }

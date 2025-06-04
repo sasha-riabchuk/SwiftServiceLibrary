@@ -5,4 +5,7 @@ public enum BodyParameterEncoding: String {
 
     /// Encodes any JSON compatible object as the HTTP body of the URL request.
     case json = "application/json"
+
+    /// Encodes the parameters as a multipart form data request.
+    case multipartFormData = "multipart/form-data"
 }

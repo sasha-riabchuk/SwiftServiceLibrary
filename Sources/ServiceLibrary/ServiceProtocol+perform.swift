@@ -7,7 +7,7 @@ public protocol URLSessionProtocol {
 
 extension URLSession: URLSessionProtocol {} // Conform URLSession to the protocol
 
-public extension ServiceProtocol {
+extension ServiceProtocol {
     /// Designated request-making method.
     /// - Parameters:
     ///   - interceptor: An optional `Interceptor` that can intercept the request before it is sent.
@@ -18,12 +18,13 @@ public extension ServiceProtocol {
     ///   - decoder: An object that decodes instances of a data type from JSON objects.
     ///   - handleResponse: Response handler that handles custom object decoding
     /// - Returns: Decoded object
-    func perform<D: Decodable>(authorizationPlugin: AuthorizationPlugin?,
-                               baseUrl: URL?,
-                               urlSession: URLSessionProtocol,
-                               decoder: JSONDecoder = .init(),
-                               handleResponse: ((Data, URLResponse) throws -> D)? = nil) async throws -> D
-    {
+    public func perform<D: Decodable>(
+        authorizationPlugin: AuthorizationPlugin?,
+        baseUrl: URL?,
+        urlSession: URLSessionProtocol,
+        decoder: JSONDecoder = .init(),
+        handleResponse: ((Data, URLResponse) throws -> D)? = nil
+    ) async throws -> D {
         var urlRequest = try urlRequest(authorizationPlugin: authorizationPlugin, baseUrl: baseUrl)
 
         guard let interceptors else {
@@ -37,9 +38,12 @@ public extension ServiceProtocol {
         // set cookies
         urlRequest.addCookies()
 
-
         let request = try await interceptors.performRequestInterception(urlRequest)
-        let (modifiedData, modifiedUrlResponse) = try await interceptors.performResponseInterception(request, urlSession: urlSession)
+        debugPrint(request.cURL())
+        let (modifiedData, modifiedUrlResponse) = try await interceptors.performResponseInterception(
+            request,
+            urlSession: urlSession
+        )
 
         guard let handleResponse else {
             return try Self.handleResponse(data: modifiedData, urlResponse: modifiedUrlResponse, decoder: decoder)
@@ -59,13 +63,14 @@ public extension ServiceProtocol {
     ///   - decoder: An object that decodes instances of a data type from JSON objects.
     ///   - handleResponse: Response handler that handles custom object decoding
     /// - Returns:Decoded object
-    func performUpload<D: Decodable>(authorizationPlugin: AuthorizationPlugin? = nil,
-                                     baseUrl: URL? = nil,
-                                     multipartFormData: MultipartFormData,
-                                     urlSession: URLSession = URLSession.shared,
-                                     decoder: JSONDecoder = JSONDecoder(),
-                                     handleResponse: ((Data, URLResponse) throws -> D)? = nil) async throws -> D
-    {
+    public func performUpload<D: Decodable>(
+        authorizationPlugin: AuthorizationPlugin? = nil,
+        baseUrl: URL? = nil,
+        multipartFormData: MultipartFormData,
+        urlSession: URLSession = URLSession.shared,
+        decoder: JSONDecoder = JSONDecoder(),
+        handleResponse: ((Data, URLResponse) throws -> D)? = nil
+    ) async throws -> D {
         var urlRequest = try urlRequest(authorizationPlugin: authorizationPlugin, baseUrl: baseUrl)
 
         // set cookies
@@ -74,7 +79,10 @@ public extension ServiceProtocol {
         let requestData = try multipartFormData.encode()
 
         urlRequest.headers.add(
-            .init(name: "Content-Type", value: "multipart/form-data; boundary=\(multipartFormData.boundary)")
+            .init(
+                name: "Content-Type",
+                value: "\(BodyParameterEncoding.multipartFormData); boundary=\(multipartFormData.boundary)"
+            )
         )
 
         urlRequest.headers.add(
@@ -82,6 +90,8 @@ public extension ServiceProtocol {
                 name: "Content-Length", value: "\(requestData.count)"
             )
         )
+
+        debugPrint(urlRequest.cURL())
 
         let (data, urlResponse) = try await urlSession.upload(for: urlRequest, from: requestData)
         guard let handleResponse else {
@@ -119,11 +129,12 @@ public extension ServiceProtocol {
     ///       // ...
     ///   }
     ///   ```
-    static func handleResponse<D: Decodable>(data: Data,
-                                             urlResponse: URLResponse,
-                                             decoder: JSONDecoder,
-                                             successCodes: Set<Int> = Set(200 ... 299)) throws -> D
-    {
+    public static func handleResponse<D: Decodable>(
+        data: Data,
+        urlResponse: URLResponse,
+        decoder: JSONDecoder,
+        successCodes: Set<Int> = Set(200 ... 299)
+    ) throws -> D {
         guard let response = urlResponse as? HTTPURLResponse else {
             throw ServiceProtocolError.unexpectedResponse(urlResponse as? HTTPURLResponse)
         }

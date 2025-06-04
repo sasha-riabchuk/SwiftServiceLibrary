@@ -1,6 +1,6 @@
 import Foundation
 
-public extension ServiceProtocol {
+extension ServiceProtocol {
     ///
     /// This function configures the content type of the request based on the encoding of the parameters
     /// and the specified string encoding.
@@ -13,7 +13,7 @@ public extension ServiceProtocol {
     /// - Returns: A `HTTPHeaders` object configured with default headers
     /// and the `Content-Type header based on the parameters encoding
     /// and the specified string encoding.
-    func defaultHeaders(encoding: String.Encoding = .utf8) -> HTTPHeaders {
+    public func defaultHeaders(encoding: String.Encoding = .utf8) -> HTTPHeaders {
         let ianaName = encoding.ianaName ?? "utf-8"
         var headers = HTTPHeaders.default
         if let parametersEncoding {
@@ -23,7 +23,7 @@ public extension ServiceProtocol {
     }
 }
 
-public extension String.Encoding {
+extension String.Encoding {
     /// Returns the IANA character set name corresponding to the receiver's string encoding.
     ///
     /// IANA is an organization that manages global IP addressing,
@@ -36,7 +36,7 @@ public extension String.Encoding {
     /// If the conversion fails, this method returns `nil`.
     ///
     /// - Returns: The IANA character set name as a `String` or `nil` if the conversion fails.
-     var ianaName: String? {
+    public var ianaName: String? {
         let cfEnc = CFStringConvertNSStringEncodingToEncoding(rawValue)
         guard let ianaName = CFStringConvertEncodingToIANACharSetName(cfEnc) as? String else {
             return nil

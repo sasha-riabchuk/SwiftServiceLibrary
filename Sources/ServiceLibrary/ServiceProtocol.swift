@@ -8,23 +8,12 @@ public protocol ServiceProtocol {
     var path: String? { get }
 
     /// The HTTP method used in the request.
-    var httpMethod: HttpMethod { get }
+    var httpMethod: HTTPMethod { get }
 
     /// The headers to be used in the request.
     var headers: [String: String]? { get }
 
-    /** URL Parameters to be appended to URL
-
-     URL parameters (known also as “query strings”
-     or “URL query parameters”)
-     are elements inserted in your URLs
-
-     To identify a URL parameter, refer to the portion of the URL
-     that comes after a question mark (?).
-     URL parameters are made of a key and a value,
-     separated by an equal sign (=).
-     Multiple parameters are each then separated by an ampersand (&).
-     */
+    /// The query items to be appended to the URL.
     var queryItems: [URLQueryItem]? { get }
 
     /// Request Parameters
@@ -32,6 +21,7 @@ public protocol ServiceProtocol {
 
     /// A type used to define how a set of parameters are applied to a `URLRequest`.
     var parametersEncoding: BodyParameterEncoding? { get }
-    
+
+    /// A storage for interceptors that can modify requests and responses.
     var interceptors: InterceptorsStorage? { get }
 }

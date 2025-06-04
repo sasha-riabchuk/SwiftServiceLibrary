@@ -112,11 +112,13 @@ open class MultipartFormData {
     ///   - name:     Name to associate with the stream content in the `Content-Disposition` HTTP header.
     ///   - fileName: Filename to associate with the stream content in the `Content-Disposition` HTTP header.
     ///   - mimeType: MIME type to associate with the stream content in the `Content-Type` HTTP header.
-    public func append(_ stream: InputStream,
-                       withLength length: UInt64,
-                       name: String,
-                       fileName: String,
-                       mimeType: String) {
+    public func append(
+        _ stream: InputStream,
+        withLength length: UInt64,
+        name: String,
+        fileName: String,
+        mimeType: String
+    ) {
         let headers = contentHeaders(withName: name, fileName: fileName, mimeType: mimeType)
         append(stream, withLength: length, headers: headers)
     }
@@ -216,7 +218,8 @@ open class MultipartFormData {
         guard UInt64(encoded.count) == bodyPart.bodyContentLength else {
             throw MultipartEncodingError.unexpectedInputStreamLength(
                 bytesExpected: bodyPart.bodyContentLength,
-                bytesRead: UInt64(encoded.count))
+                bytesRead: UInt64(encoded.count)
+            )
         }
 
         return encoded
@@ -302,9 +305,11 @@ open class MultipartFormData {
 
     // MARK: - Private - Content Headers
 
-    private func contentHeaders(withName name: String,
-                                fileName: String? = nil,
-                                mimeType: String? = nil) -> HTTPHeaders {
+    private func contentHeaders(
+        withName name: String,
+        fileName: String? = nil,
+        mimeType: String? = nil
+    ) -> HTTPHeaders {
         var disposition = "form-data; name=\"\(name)\""
         if let fileName = fileName { disposition += "; filename=\"\(fileName)\"" }
 
@@ -339,13 +344,14 @@ open class MultipartFormData {
             if #available(iOS 14, macOS 11, tvOS 14, watchOS 7, *) {
                 return UTType(filenameExtension: pathExtension)?.preferredMIMEType ?? "application/octet-stream"
             } else {
-                if
-                    let id = UTTypeCreatePreferredIdentifierForTag(
-                        kUTTagClassFilenameExtension,
-                        pathExtension as CFString, nil)?.takeRetainedValue(),
+                if let id = UTTypeCreatePreferredIdentifierForTag(
+                    kUTTagClassFilenameExtension,
+                    pathExtension as CFString, nil
+                )?.takeRetainedValue(),
                     let contentType = UTTypeCopyPreferredTagWithClass(
                         id,
-                        kUTTagClassMIMEType)?.takeRetainedValue() {
+                        kUTTagClassMIMEType
+                    )?.takeRetainedValue() {
                     return contentType as String
                 }
 
@@ -361,10 +367,10 @@ open class MultipartFormData {
 
         private func mimeType(forPathExtension pathExtension: String) -> String {
             #if !(os(Linux) || os(Windows))
-                if
-                    let id = UTTypeCreatePreferredIdentifierForTag(
-                        kUTTagClassFilenameExtension,
-                        pathExtension as CFString, nil)?.takeRetainedValue(),
+                if let id = UTTypeCreatePreferredIdentifierForTag(
+                    kUTTagClassFilenameExtension,
+                    pathExtension as CFString, nil
+                )?.takeRetainedValue(),
 
                     let contentType = UTTypeCopyPreferredTagWithClass(id, kUTTagClassMIMEType)?.takeRetainedValue() {
                     return contentType as String

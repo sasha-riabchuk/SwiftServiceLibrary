@@ -1,7 +1,7 @@
 import Foundation
 
-public extension URLRequest {
-    func cURL(pretty: Bool = false) -> String {
+extension URLRequest {
+    public func cURL(pretty: Bool = false) -> String {
         let newLine = pretty ? "\\\n" : ""
         let method = (pretty ? "--request " : "-X ") + "\(httpMethod ?? "GET") \(newLine)"
         let url: String = (pretty ? "--url " : "") + "\'\(url?.absoluteString ?? "")\' \(newLine)"

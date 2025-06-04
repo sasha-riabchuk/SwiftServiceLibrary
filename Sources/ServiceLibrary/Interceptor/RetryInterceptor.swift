@@ -1,19 +1,40 @@
 import Foundation
 
-public struct RetryInterceptor: RequestInterceptor {
+public struct RetryInterceptor: Interceptor {
     /// The maximum number of retry attempts.
     private let retryCount: Int
     /// The HTTP status codes that should trigger a retry.
-    private let retryStatusCodes: Set<Int> = [429, 500, 502, 503, 504]
+    private let retryStatusCodes: Set<Int>
     /// The delay between retry attempts
-    private let delayBetweenRetries: UInt64 = 1_500_000_000
+    private let delayBetweenRetries: UInt64
 
-    public init(retryCount: Int = 2) {
+    /// Initializes a new `RetryInterceptor`.
+    /// - Parameters:
+    ///  - retryStatusCodes: A set of HTTP status codes that should trigger a retry. Defaults to `[429, 500, 502, 503, 504]`.
+    ///  - retryCount: The maximum number of retry attempts. Defaults to `2`.
+    ///  - delayBetweenRetries: The delay between retry attempts in nanoseconds. Defaults to `1_500_000_000` (1.5 seconds).
+    ///  /// - Example:
+    ///  ///   ```swift
+    ///  ///   let retryInterceptor = RetryInterceptor(
+    ///  ///       retryStatusCodes: [429, 500, 502, 503, 504],
+    ///  ///       retryCount: 2,
+    ///  ///       delayBetweenRetries: 1_500_000_000
+    ///  ///   )
+    ///  ///   ```
+    public init(
+        retryStatusCodes: Set<Int> = [429, 500, 502, 503, 504],
+        retryCount: Int = 2,
+        delayBetweenRetries: UInt64 = 1_500_000_000
+    ) {
+        self.retryStatusCodes = retryStatusCodes
         self.retryCount = retryCount
+        self.delayBetweenRetries = delayBetweenRetries
     }
 
-    public func adapt(_ urlRequest: URLRequest,
-                      for session: URLSessionProtocol) async throws -> URLRequest {
+    public func adapt(
+        _ urlRequest: URLRequest,
+        for _: URLSessionProtocol
+    ) async throws -> URLRequest {
         urlRequest
     }
 
@@ -23,8 +44,10 @@ public struct RetryInterceptor: RequestInterceptor {
     ///   - urlSession: The URL session for the request.
     /// - Returns: The data and response of the HTTP request.
     /// - Throws: An error if the request cannot be executed after the maximum number of retry attempts.
-    public func retry(_ request: URLRequest,
-                      for session: URLSessionProtocol) async throws -> (Data, URLResponse) {
+    public func retry(
+        _ request: URLRequest,
+        for session: URLSessionProtocol
+    ) async throws -> (Data, URLResponse) {
         for i in 0 ... retryCount {
             do {
                 let (data, urlResponse) = try await session.data(for: request)
@@ -42,13 +65,13 @@ public struct RetryInterceptor: RequestInterceptor {
 
                 return (data, urlResponse)
             } catch {
-                if case ServiceProtocolError.responseCode(let statusCode) = error,
+                if case let ServiceProtocolError.responseCode(statusCode) = error,
                    retryStatusCodes.contains(statusCode) {
                     try await Task.sleep(nanoseconds: delayBetweenRetries)
                     continue
                 }
 
-                if case ServiceProtocolError.unexpectedResponse(let response) = error,
+                if case let ServiceProtocolError.unexpectedResponse(response) = error,
                    let response,
                    retryStatusCodes.contains(response.statusCode) {
                     try await Task.sleep(nanoseconds: delayBetweenRetries)
