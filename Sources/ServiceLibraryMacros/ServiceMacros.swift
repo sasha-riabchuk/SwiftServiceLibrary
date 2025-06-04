@@ -29,49 +29,34 @@ public struct ServiceMacro: MemberMacro, PeerMacro {
         if let enumDecl = declaration.as(EnumDeclSyntax.self) {
             for member in enumDecl.memberBlock.members {
                 guard let caseDecl = member.decl.as(EnumCaseDeclSyntax.self) else { continue }
+                guard let caseName = caseDecl.elements.first?.name.text else { continue }
                 for attr in caseDecl.attributes {
                     guard let attrSyntax = attr.as(AttributeSyntax.self) else { continue }
                     let name = attrSyntax.attributeName.description.trimmingCharacters(in: .whitespacesAndNewlines)
                     switch name {
-                    case "Get", "Post", "Put", "Delete", "Patch":
-                        guard let argList = attrSyntax.arguments?.as(LabeledExprListSyntax.self),
-                              let endpointExpr = argList.first?.expression,
-                              let endpointLiteral = endpointExpr.as(StringLiteralExprSyntax.self)?.segments.first?.description
-                              .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
-                        else { continue }
-                        pathCases.append("case .\\(caseName): return \\\"\\(endpointLiteral)\\\"")
-                        let method: String
-                        switch name {
-                        case "Get": method = ".get"
-                        case "Post": method = ".post"
-                        case "Put": method = ".put"
-                        case "Delete": method = ".delete"
-                        default: method = ".patch"
-                        }
-                        methodCases.append("case .\\(caseName): return \(method)")
+                    case "Get":
+                        pathCases.append("case .\(caseName): return Self.\(caseName)_path")
+                        methodCases.append("case .\(caseName): return .get")
+                    case "Post":
+                        pathCases.append("case .\(caseName): return Self.\(caseName)_path")
+                        methodCases.append("case .\(caseName): return .post")
+                    case "Put":
+                        pathCases.append("case .\(caseName): return Self.\(caseName)_path")
+                        methodCases.append("case .\(caseName): return .put")
+                    case "Delete":
+                        pathCases.append("case .\(caseName): return Self.\(caseName)_path")
+                        methodCases.append("case .\(caseName): return .delete")
+                    case "Patch":
+                        pathCases.append("case .\(caseName): return Self.\(caseName)_path")
+                        methodCases.append("case .\(caseName): return .patch")
                     case "Header":
-                        if let args = attrSyntax.arguments?.as(LabeledExprListSyntax.self),
-                           let nameExpr = args.first(where: { $0.label?.text == "name" })?.expression,
-                           let valueExpr = args.first(where: { $0.label?.text == "value" })?.expression {
-                            headerCases.append("case .\\(caseName): return [\\(nameExpr): \\(valueExpr)]")
-                        }
+                        headerCases.append("case .\(caseName): return Self.\(caseName)_headers")
                     case "Query":
-                        if let args = attrSyntax.arguments?.as(LabeledExprListSyntax.self),
-                           let nameExpr = args.first(where: { $0.label?.text == "name" })?.expression,
-                           let valueExpr = args.first(where: { $0.label?.text == "value" })?.expression {
-                            queryCases
-                                .append("case .\\(caseName): return [URLQueryItem(name: \\(nameExpr), value: \\(valueExpr))]")
-                        }
+                        queryCases.append("case .\(caseName): return Self.\(caseName)_queryItems")
                     case "Params":
-                        if let args = attrSyntax.arguments?.as(LabeledExprListSyntax.self),
-                           let keyExpr = args.first(where: { $0.label?.text == "key" })?.expression,
-                           let valueExpr = args.first(where: { $0.label?.text == "value" })?.expression {
-                            paramsCases.append("case .\\(caseName): return [\\(keyExpr): \\(valueExpr)]")
-                        }
+                        paramsCases.append("case .\(caseName): return Self.\(caseName)_parameters")
                     case "Interceptor":
-                        if let arg = attrSyntax.argument?.as(LabeledExprListSyntax.self)?.first?.expression {
-                            interceptorCases.append("case .\\(caseName): return InterceptorsStorage(interceptors: [\\(arg)])")
-                        }
+                        interceptorCases.append("case .\(caseName): return Self.\(caseName)_interceptors")
                     default:
                         continue
                     }
@@ -80,24 +65,34 @@ public struct ServiceMacro: MemberMacro, PeerMacro {
         }
 
         let baseURLMember: DeclSyntax = """
-        public var baseURL: URL? { URL(string: "\(raw: baseURLLiteral)") }
+        public var baseURL: URL? { URL(string: \"\(raw: baseURLLiteral)\") }
         """
 
-        let pathMember: DeclSyntax = """
-        public var path: String? {
-            switch self {
-        \(raw: pathCases.joined(separator: "\n"))
+        let pathMember: DeclSyntax
+        if pathCases.isEmpty {
+            pathMember = "public var path: String? { nil }"
+        } else {
+            pathMember = """
+            public var path: String? {
+                switch self {
+            \(raw: pathCases.joined(separator: "\n"))
+                }
             }
+            """
         }
-        """
 
-        let methodMember: DeclSyntax = """
-        public var httpMethod: HTTPMethod {
-            switch self {
-        \(raw: methodCases.joined(separator: "\n"))
+        let methodMember: DeclSyntax
+        if methodCases.isEmpty {
+            methodMember = "public var httpMethod: HTTPMethod { .get }"
+        } else {
+            methodMember = """
+            public var httpMethod: HTTPMethod {
+                switch self {
+            \(raw: methodCases.joined(separator: "\n"))
+                }
             }
+            """
         }
-        """
 
         let headersMember: DeclSyntax
         if headerCases.isEmpty {
@@ -181,74 +176,169 @@ public struct ServiceMacro: MemberMacro, PeerMacro {
 
 public struct GetMacro: PeerMacro {
     public static func expansion(
-        of _: AttributeSyntax,
-        providingPeersOf _: some DeclSyntaxProtocol,
+        of attribute: AttributeSyntax,
+        providingPeersOf declaration: some DeclSyntaxProtocol,
         in _: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        []
+        guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
+              let caseName = caseDecl.elements.first?.name.text,
+              let argList = attribute.arguments?.as(LabeledExprListSyntax.self),
+              let endpointExpr = argList.first?.expression
+        else { return [] }
+
+        let pathVar: DeclSyntax = "static var \(raw: caseName)_path: String { \(endpointExpr) }"
+        return [pathVar]
     }
 }
 
 public struct PostMacro: PeerMacro {
     public static func expansion(
-        of _: AttributeSyntax,
-        providingPeersOf _: some DeclSyntaxProtocol,
+        of attribute: AttributeSyntax,
+        providingPeersOf declaration: some DeclSyntaxProtocol,
         in _: some MacroExpansionContext
-    ) throws -> [DeclSyntax] { [] }
+    ) throws -> [DeclSyntax] {
+        guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
+              let caseName = caseDecl.elements.first?.name.text,
+              let argList = attribute.arguments?.as(LabeledExprListSyntax.self),
+              let endpointExpr = argList.first?.expression
+        else { return [] }
+
+        let pathVar: DeclSyntax = "static var \(raw: caseName)_path: String { \(endpointExpr) }"
+        return [pathVar]
+    }
 }
 
 public struct PutMacro: PeerMacro {
     public static func expansion(
-        of _: AttributeSyntax,
-        providingPeersOf _: some DeclSyntaxProtocol,
+        of attribute: AttributeSyntax,
+        providingPeersOf declaration: some DeclSyntaxProtocol,
         in _: some MacroExpansionContext
-    ) throws -> [DeclSyntax] { [] }
+    ) throws -> [DeclSyntax] {
+        guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
+              let caseName = caseDecl.elements.first?.name.text,
+              let argList = attribute.arguments?.as(LabeledExprListSyntax.self),
+              let endpointExpr = argList.first?.expression
+        else { return [] }
+
+        let pathVar: DeclSyntax = "static var \(raw: caseName)_path: String { \(endpointExpr) }"
+        return [pathVar]
+    }
 }
 
 public struct DeleteMacro: PeerMacro {
     public static func expansion(
-        of _: AttributeSyntax,
-        providingPeersOf _: some DeclSyntaxProtocol,
+        of attribute: AttributeSyntax,
+        providingPeersOf declaration: some DeclSyntaxProtocol,
         in _: some MacroExpansionContext
-    ) throws -> [DeclSyntax] { [] }
+    ) throws -> [DeclSyntax] {
+        guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
+              let caseName = caseDecl.elements.first?.name.text,
+              let argList = attribute.arguments?.as(LabeledExprListSyntax.self),
+              let endpointExpr = argList.first?.expression
+        else { return [] }
+
+        let pathVar: DeclSyntax = "static var \(raw: caseName)_path: String { \(endpointExpr) }"
+        return [pathVar]
+    }
 }
 
 public struct PatchMacro: PeerMacro {
     public static func expansion(
-        of _: AttributeSyntax,
-        providingPeersOf _: some DeclSyntaxProtocol,
+        of attribute: AttributeSyntax,
+        providingPeersOf declaration: some DeclSyntaxProtocol,
         in _: some MacroExpansionContext
-    ) throws -> [DeclSyntax] { [] }
+    ) throws -> [DeclSyntax] {
+        guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
+              let caseName = caseDecl.elements.first?.name.text,
+              let argList = attribute.arguments?.as(LabeledExprListSyntax.self),
+              let endpointExpr = argList.first?.expression
+        else { return [] }
+
+        let pathVar: DeclSyntax = "static var \(raw: caseName)_path: String { \(endpointExpr) }"
+        return [pathVar]
+    }
 }
 
 public struct HeaderMacro: PeerMacro {
     public static func expansion(
-        of _: AttributeSyntax,
-        providingPeersOf _: some DeclSyntaxProtocol,
+        of attribute: AttributeSyntax,
+        providingPeersOf declaration: some DeclSyntaxProtocol,
         in _: some MacroExpansionContext
-    ) throws -> [DeclSyntax] { [] }
+    ) throws -> [DeclSyntax] {
+        guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
+              let caseName = caseDecl.elements.first?.name.text,
+              let argList = attribute.arguments?.as(LabeledExprListSyntax.self),
+              let valuesExpr = argList.first?.expression
+        else { return [] }
+
+        let headerVar: DeclSyntax = """
+        static var \(raw: caseName)_headers: [String: String]? {
+            Dictionary(uniqueKeysWithValues: \(valuesExpr).map { ($0.key, String(describing: $0.value)) })
+        }
+        """
+        return [headerVar]
+    }
 }
 
 public struct QueryMacro: PeerMacro {
     public static func expansion(
-        of _: AttributeSyntax,
-        providingPeersOf _: some DeclSyntaxProtocol,
+        of attribute: AttributeSyntax,
+        providingPeersOf declaration: some DeclSyntaxProtocol,
         in _: some MacroExpansionContext
-    ) throws -> [DeclSyntax] { [] }
+    ) throws -> [DeclSyntax] {
+        guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
+              let caseName = caseDecl.elements.first?.name.text,
+              let argList = attribute.arguments?.as(LabeledExprListSyntax.self),
+              let valuesExpr = argList.first?.expression
+        else { return [] }
+
+        let queryVar: DeclSyntax = """
+        static var \(raw: caseName)_queryItems: [URLQueryItem]? {
+            \(valuesExpr).map { URLQueryItem(name: $0.key, value: String(describing: $0.value)) }
+        }
+        """
+        return [queryVar]
+    }
 }
 
 public struct ParamsMacro: PeerMacro {
     public static func expansion(
-        of _: AttributeSyntax,
-        providingPeersOf _: some DeclSyntaxProtocol,
+        of attribute: AttributeSyntax,
+        providingPeersOf declaration: some DeclSyntaxProtocol,
         in _: some MacroExpansionContext
-    ) throws -> [DeclSyntax] { [] }
+    ) throws -> [DeclSyntax] {
+        guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
+              let caseName = caseDecl.elements.first?.name.text,
+              let argList = attribute.arguments?.as(LabeledExprListSyntax.self),
+              let valuesExpr = argList.first?.expression
+        else { return [] }
+
+        let paramsVar: DeclSyntax = """
+        static var \(raw: caseName)_parameters: [String: Any]? {
+            Dictionary(uniqueKeysWithValues: \(valuesExpr).map { ($0.key, $0.value) })
+        }
+        """
+        return [paramsVar]
+    }
 }
 
 public struct InterceptorMacro: PeerMacro {
     public static func expansion(
-        of _: AttributeSyntax,
-        providingPeersOf _: some DeclSyntaxProtocol,
+        of attribute: AttributeSyntax,
+        providingPeersOf declaration: some DeclSyntaxProtocol,
         in _: some MacroExpansionContext
-    ) throws -> [DeclSyntax] { [] }
+    ) throws -> [DeclSyntax] {
+        guard let caseDecl = declaration.as(EnumCaseDeclSyntax.self),
+              let caseName = caseDecl.elements.first?.name.text,
+              let argList = attribute.arguments?.as(LabeledExprListSyntax.self),
+              let interceptorExpr = argList.first?.expression
+        else { return [] }
+
+        let interceptorVar: DeclSyntax = """
+        static var \(raw: caseName)_interceptors: InterceptorsStorage? {
+            InterceptorsStorage(interceptors: [\(interceptorExpr)])
+        }
+        """
+        return [interceptorVar]
+    }
 }
