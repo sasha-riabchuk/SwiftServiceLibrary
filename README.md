@@ -2,6 +2,8 @@
 
 Swift micro library providing simple HTTP service abstractions. It defines a `ServiceProtocol` describing an endpoint and utilities for building and executing `URLRequest`s. It also includes helpers for multipart uploads and request interception.
 
+This version of the library requires Swift 6 and adopts concurrency safety through the `Sendable` protocol.
+
 ## Installation
 
 Add the package to your `Package.swift` dependencies:
