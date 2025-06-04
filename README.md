@@ -9,7 +9,7 @@ This version of the library requires Swift 6 and adopts concurrency safety throu
 Add the package to your `Package.swift` dependencies:
 
 ```swift
-.package(url: "https://github.com/yourOrg/ServiceLibrary.git", from: "1.0.0")
+.package(url: "https://github.com/sasha-riabchuk/SwiftServiceLibrary.git", from: "1.0.0")
 ```
 
 Then add `ServiceLibrary` as a dependency for your target.
