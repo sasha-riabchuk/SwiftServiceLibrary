@@ -63,6 +63,13 @@ final class ServiceLibraryTests: XCTestCase {
         let urlRequest: URLRequest = try KYCService.status.urlRequest()
         XCTAssertEqual(urlRequest.url?.absoluteString, "https://www.mock.com/users")
     }
+
+    func testMacroGeneratedMembers() throws {
+        let service = KYCService.status
+        XCTAssertEqual(service.baseURL, URL(string: "https://www.mock.com"))
+        XCTAssertEqual(service.httpMethod, .get)
+        XCTAssertEqual(service.path, "/users")
+    }
 }
 
 final class URLEncodedFormParameterEncoderTests: XCTestCase {
