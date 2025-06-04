@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol ServiceProtocol {
+public protocol ServiceProtocol: Sendable {
     /// The target's base `URL`.
     var baseURL: URL? { get }
 

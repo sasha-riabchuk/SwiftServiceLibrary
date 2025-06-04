@@ -2,12 +2,14 @@
 
 Swift micro library providing simple HTTP service abstractions. It defines a `ServiceProtocol` describing an endpoint and utilities for building and executing `URLRequest`s. It also includes helpers for multipart uploads and request interception.
 
+This version of the library requires Swift 6 and adopts concurrency safety through the `Sendable` protocol.
+
 ## Installation
 
 Add the package to your `Package.swift` dependencies:
 
 ```swift
-.package(url: "https://github.com/yourOrg/ServiceLibrary.git", from: "1.0.0")
+.package(url: "https://github.com/sasha-riabchuk/SwiftServiceLibrary.git", from: "1.0.0")
 ```
 
 Then add `ServiceLibrary` as a dependency for your target.
@@ -45,6 +47,20 @@ let users: [User] = try await MyService.users.perform(
     urlSession: session
 )
 ```
+
+## Macro Usage (Swift 5.9+)
+
+You can also declare services using the provided macros. Annotate an enum with `@Service` and cases with HTTP method macros:
+
+```swift
+@Service(baseURL: "https://example.com")
+enum MacroService {
+    @Get(endpoint: "/users")
+    case users
+}
+```
+
+The generated implementation conforms to `ServiceProtocol` so you can call `perform` just like the manual example.
 
 For multipart uploads you can use `MultipartFormData`:
 

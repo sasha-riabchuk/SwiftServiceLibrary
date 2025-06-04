@@ -5,7 +5,7 @@ import XCTest
 
 import XCTest
 
-struct EmptyModel: Codable {}
+struct EmptyModel: Codable, Sendable {}
 
 class RetryInterceptorTests: XCTestCase {
     var sut: ServiceProtocol! // System Under Test
@@ -36,7 +36,7 @@ class RetryInterceptorTests: XCTestCase {
 }
 
 // Mock URLSession
-class MockURLSession: URLSessionProtocol {
+final class MockURLSession: URLSessionProtocol, Sendable {
     var mockData: Data?
     var mockResponse: URLResponse?
     var mockError: Error?

@@ -13,7 +13,7 @@ extension ServiceProtocol {
     /// A URL request for this service
     public func urlRequest(authorizationPlugin: AuthorizationPlugin? = nil, baseUrl: URL? = nil) throws -> URLRequest {
         guard let url = url(baseUrl: baseUrl) else {
-            throw ServiceProtocolError.invalidURL(self)
+            throw ServiceProtocolError.invalidURL
         }
 
         var request = URLRequest(url: url)

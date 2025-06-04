@@ -1,6 +1,6 @@
 import Foundation
 
-public struct RetryInterceptor: Interceptor {
+public struct RetryInterceptor: Interceptor, Sendable {
     /// The maximum number of retry attempts.
     private let retryCount: Int
     /// The HTTP status codes that should trigger a retry.
