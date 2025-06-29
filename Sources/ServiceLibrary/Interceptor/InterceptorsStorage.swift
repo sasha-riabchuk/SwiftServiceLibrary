@@ -7,10 +7,13 @@ public struct InterceptorsStorage {
         self.interceptors = interceptors
     }
 
-    func performRequestInterception(_ request: URLRequest) async throws -> URLRequest {
+    func performRequestInterception(
+        _ request: URLRequest,
+        urlSession: URLSessionProtocol
+    ) async throws -> URLRequest {
         var modifiedRequest = request
         for interceptor in interceptors {
-            let result = try await interceptor.adapt(modifiedRequest, for: URLSession.shared)
+            let result = try await interceptor.adapt(modifiedRequest, for: urlSession)
             modifiedRequest = result
         }
         return modifiedRequest

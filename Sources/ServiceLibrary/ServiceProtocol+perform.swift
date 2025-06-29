@@ -5,7 +5,7 @@ public protocol URLSessionProtocol {
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
 }
 
-extension URLSession: URLSessionProtocol {} // Conform URLSession to the protocol
+extension URLSession: URLSessionProtocol {}
 
 extension ServiceProtocol {
     /// Designated request-making method.
@@ -38,7 +38,10 @@ extension ServiceProtocol {
         // set cookies
         urlRequest.addCookies()
 
-        let request = try await interceptors.performRequestInterception(urlRequest)
+        let request = try await interceptors.performRequestInterception(
+            urlRequest,
+            urlSession: urlSession
+        )
         debugPrint(request.cURL())
         let (modifiedData, modifiedUrlResponse) = try await interceptors.performResponseInterception(
             request,
