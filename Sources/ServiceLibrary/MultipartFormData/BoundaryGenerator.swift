@@ -1,9 +1,9 @@
 import Foundation
 
-enum BoundaryGenerator {
+enum BoundaryGenerator: Sendable {
     typealias EncodingCharacters = MultipartFormData.EncodingCharacters
 
-    enum BoundaryType {
+    enum BoundaryType: Sendable {
         case initial, encapsulated, final
     }
 

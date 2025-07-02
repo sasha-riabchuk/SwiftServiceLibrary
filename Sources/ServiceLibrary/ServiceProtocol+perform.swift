@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 
-public protocol URLSessionProtocol {
+public protocol URLSessionProtocol: Sendable {
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
 }
 
@@ -146,7 +146,6 @@ extension ServiceProtocol {
             throw ServiceProtocolError.responseCode(response.statusCode)
         }
         do {
-            let string = String(data: data, encoding: .utf8)
             return try decoder.decode(D.self, from: data)
         } catch {
             throw error
