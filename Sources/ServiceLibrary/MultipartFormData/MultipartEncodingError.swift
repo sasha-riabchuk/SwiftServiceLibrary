@@ -3,7 +3,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public enum MultipartEncodingError: Error {
+public enum MultipartEncodingError: Error, Sendable {
     case unexpectedInputStreamLength(bytesExpected: UInt64, bytesRead: UInt64)
 
     /// The `fileURL` provided for reading an encodable body part isn't a file `URL`.

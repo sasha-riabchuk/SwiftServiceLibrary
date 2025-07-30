@@ -13,8 +13,11 @@ extension ServiceProtocol {
         return url.appendingLegacy(queryItems: queryItems)
     }
 
-    /// A URL request for this service
-    public func urlRequest(baseUrl: URL? = nil) throws -> URLRequest {
+    /// Creates a ``URLRequest`` for this service.
+    ///
+    /// - Parameter baseUrl: Optional base URL overriding ``ServiceProtocol.baseURL``.
+    /// - Returns: Configured ``URLRequest``.
+    public func urlRequest(baseUrl: URL? = nil) async throws -> URLRequest {
         guard let url = url(baseUrl: baseUrl) else {
             throw ServiceProtocolError.invalidURL(self)
         }

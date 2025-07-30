@@ -21,14 +21,14 @@ import FoundationNetworking
 /// - https://www.ietf.org/rfc/rfc2388.txt
 /// - https://www.ietf.org/rfc/rfc2045.txt
 /// - https://www.w3.org/TR/html401/interact/forms.html#h-17.13
-open class MultipartFormData {
+open class MultipartFormData: @unchecked Sendable {
     // MARK: - Helper Types
 
     enum EncodingCharacters {
         static let crlf = "\r\n"
     }
 
-    class BodyPart {
+    class BodyPart: @unchecked Sendable {
         let headers: HTTPHeaders
         let bodyStream: InputStream
         let bodyContentLength: UInt64
