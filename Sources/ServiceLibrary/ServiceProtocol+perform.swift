@@ -1,58 +1,73 @@
-import Combine
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public protocol URLSessionProtocol {
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
+    func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse)
 }
 
-extension URLSession: URLSessionProtocol {}
+extension URLSession: URLSessionProtocol {
+    public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        try await data(for: request, delegate: nil)
+    }
+
+    public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
+        try await upload(for: request, from: bodyData, delegate: nil)
+    }
+}
 
 extension ServiceProtocol {
     /// Designated request-making method.
     /// - Parameters:
-    ///   - interceptor: An optional `Interceptor` that can intercept the request before it is sent.
-    ///   - authorizationPlugin: A Plugin receives callbacks to perform side effects wherever a request is sent.
-    ///   - baseUrl: The service's base `URL`. If provided,  it will be used in preference to `ServiceProtocol.baseURL`
-    ///   - urlSession: URL Sessions for a request.
-    ///   - logger: Logger to log message of requests made.
-    ///   - decoder: An object that decodes instances of a data type from JSON objects.
-    ///   - handleResponse: Response handler that handles custom object decoding
+    ///   - baseUrl: Optional service base URL overriding `ServiceProtocol.baseURL`.
+    ///   - urlSession: The URL session used to perform requests.
+    ///   - requestInterceptors: Interceptors executed before the request is sent.
+    ///   - responseInterceptors: Interceptors executed after the request is sent.
+    ///   - decoder: A `JSONDecoder` used to decode the response.
+    ///   - handleResponse: Custom response handler.
     /// - Returns: Decoded object
     public func perform<D: Decodable>(
-        authorizationPlugin: AuthorizationPlugin?,
-        baseUrl: URL?,
+        baseUrl: URL? = nil,
         urlSession: URLSessionProtocol,
+        requestInterceptors: [RequestInterceptor] = [],
+        responseInterceptors: [ResponseInterceptor] = [],
         decoder: JSONDecoder = .init(),
         handleResponse: ((Data, URLResponse) throws -> D)? = nil
     ) async throws -> D {
-        var urlRequest = try urlRequest(authorizationPlugin: authorizationPlugin, baseUrl: baseUrl)
+        var urlRequest = try urlRequest(baseUrl: baseUrl)
 
-        guard let interceptors else {
-            let (data, urlResponse) = try await urlSession.data(for: urlRequest)
-            guard let handleResponse else {
-                return try Self.handleResponse(data: data, urlResponse: urlResponse, decoder: decoder)
-            }
-            return try handleResponse(data, urlResponse)
-        }
-
-        // set cookies
         urlRequest.addCookies()
 
-        let request = try await interceptors.performRequestInterception(
-            urlRequest,
-            urlSession: urlSession
-        )
-        debugPrint(request.cURL())
-        let (modifiedData, modifiedUrlResponse) = try await interceptors.performResponseInterception(
-            request,
-            urlSession: urlSession
-        )
-
-        guard let handleResponse else {
-            return try Self.handleResponse(data: modifiedData, urlResponse: modifiedUrlResponse, decoder: decoder)
+        for interceptor in requestInterceptors {
+            urlRequest = try await interceptor.adapt(urlRequest, service: self, for: urlSession)
         }
 
-        return try handleResponse(modifiedData, modifiedUrlResponse)
+        debugPrint(urlRequest.cURL())
+
+        let (data, urlResponse): (Data, URLResponse)
+        if responseInterceptors.isEmpty {
+            (data, urlResponse) = try await urlSession.data(for: urlRequest)
+        } else {
+            var tmpData: Data?
+            var tmpResponse: URLResponse?
+            for interceptor in responseInterceptors {
+                let result = try await interceptor.intercept(urlRequest, service: self, for: urlSession)
+                tmpData = result.0
+                tmpResponse = result.1
+            }
+            guard let unwrappedData = tmpData, let unwrappedResponse = tmpResponse else {
+                throw ServiceProtocolError.interceptorError
+            }
+            (data, urlResponse) = (unwrappedData, unwrappedResponse)
+        }
+
+        guard let handleResponse else {
+            return try Self.handleResponse(data: data, urlResponse: urlResponse, decoder: decoder)
+        }
+
+        return try handleResponse(data, urlResponse)
     }
 
     /// Designated request-making method.
@@ -67,14 +82,15 @@ extension ServiceProtocol {
     ///   - handleResponse: Response handler that handles custom object decoding
     /// - Returns:Decoded object
     public func performUpload<D: Decodable>(
-        authorizationPlugin: AuthorizationPlugin? = nil,
         baseUrl: URL? = nil,
         multipartFormData: MultipartFormData,
-        urlSession: URLSession = URLSession.shared,
+        urlSession: URLSessionProtocol = URLSession.shared,
+        requestInterceptors: [RequestInterceptor] = [],
+        responseInterceptors: [ResponseInterceptor] = [],
         decoder: JSONDecoder = JSONDecoder(),
         handleResponse: ((Data, URLResponse) throws -> D)? = nil
     ) async throws -> D {
-        var urlRequest = try urlRequest(authorizationPlugin: authorizationPlugin, baseUrl: baseUrl)
+        var urlRequest = try urlRequest(baseUrl: baseUrl)
 
         // set cookies
         urlRequest.addCookies()
@@ -94,9 +110,34 @@ extension ServiceProtocol {
             )
         )
 
+        for interceptor in requestInterceptors {
+            urlRequest = try await interceptor.adapt(urlRequest, service: self, for: urlSession)
+        }
+
         debugPrint(urlRequest.cURL())
 
-        let (data, urlResponse) = try await urlSession.upload(for: urlRequest, from: requestData)
+        let performUpload: () async throws -> (Data, URLResponse) = {
+            try await urlSession.upload(for: urlRequest, from: requestData)
+        }
+
+        let (data, urlResponse): (Data, URLResponse)
+
+        if responseInterceptors.isEmpty {
+            (data, urlResponse) = try await performUpload()
+        } else {
+            var tmpData: Data?
+            var tmpResponse: URLResponse?
+            for interceptor in responseInterceptors {
+                let result = try await interceptor.intercept(urlRequest, service: self, for: urlSession)
+                tmpData = result.0
+                tmpResponse = result.1
+            }
+            guard let unwrappedData = tmpData, let unwrappedResponse = tmpResponse else {
+                throw ServiceProtocolError.interceptorError
+            }
+            (data, urlResponse) = (unwrappedData, unwrappedResponse)
+        }
+
         guard let handleResponse else {
             return try Self.handleResponse(data: data, urlResponse: urlResponse, decoder: decoder)
         }

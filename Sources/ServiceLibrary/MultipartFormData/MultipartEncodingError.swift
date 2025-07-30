@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public enum MultipartEncodingError: Error {
     case unexpectedInputStreamLength(bytesExpected: UInt64, bytesRead: UInt64)

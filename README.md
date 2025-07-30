@@ -31,7 +31,6 @@ extension MyService: ServiceProtocol {
     var queryItems: [URLQueryItem]? { nil }
     var parameters: [String: Any]? { nil }
     var parametersEncoding: BodyParameterEncoding? { .json }
-    var interceptors: InterceptorsStorage? { nil }
 }
 ```
 
@@ -40,8 +39,6 @@ Perform a request using a `URLSession`:
 ```swift
 let session = URLSession.shared
 let users: [User] = try await MyService.users.perform(
-    authorizationPlugin: nil,
-    baseUrl: nil,
     urlSession: session
 )
 ```
@@ -52,10 +49,10 @@ For multipart uploads you can use `MultipartFormData`:
 let data = Data() // your file data
 var form = MultipartFormData()
 form.append(data, withName: "file", fileName: "file.dat", mimeType: "application/octet-stream")
-let response: String = try await MyService.users.performUpload(
-    multipartFormData: form,
-    urlSession: session
-)
+  let response: String = try await MyService.users.performUpload(
+      multipartFormData: form,
+      urlSession: session
+  )
 ```
 
 ## License

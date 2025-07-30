@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 #if os(iOS) || os(watchOS) || os(tvOS)
     import MobileCoreServices

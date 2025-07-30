@@ -1,5 +1,7 @@
-import Combine
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 @testable import ServiceLibrary
 import XCTest
 
@@ -7,7 +9,7 @@ enum MockService {
     case getUsers
 }
 
-extension MockService: ServiceProtocol {
+extension MockService: ServiceProtocol, BearerAuthorizable {
     var baseURL: URL? {
         URL(string: "https://mock.com")
     }
@@ -19,7 +21,7 @@ extension MockService: ServiceProtocol {
         }
     }
 
-    var httpMethod: ServiceLibrary.HttpMethod {
+    var httpMethod: ServiceLibrary.HTTPMethod {
         switch self {
         case .getUsers:
             return .get
@@ -51,16 +53,11 @@ extension MockService: ServiceProtocol {
         }
     }
 
-    var interceptors: ServiceLibrary.InterceptorsStorage? {
-        InterceptorsStorage(interceptors: [
-            RetryInterceptor(retryCount: 3)
-        ])
-    }
 }
 
 final class ServiceLibraryTests: XCTestCase {
     func testGetUrl() throws {
-        let urlRequest: URLRequest = try KYCService.status.urlRequest()
+        let urlRequest: URLRequest = try MockService.getUsers.urlRequest()
         XCTAssertEqual(urlRequest.url?.absoluteString, "https://www.mock.com/users")
     }
 }
@@ -73,6 +70,20 @@ final class URLEncodedFormParameterEncoderTests: XCTestCase {
         XCTAssertEqual(newRequest.httpMethod, "GET")
         XCTAssertEqual(newRequest.headers["Content-Type"], "application/json; charset=utf-8")
         XCTAssertNil(newRequest.httpBody)
+    }
+
+    func testBearerInterceptorAddsHeader() async throws {
+        let service = MockService.getUsers
+        let session = MockURLSession()
+        session.mockData = Data()
+        session.mockResponse = HTTPURLResponse(url: URL(string: "https://mock.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
+
+        let bearer = BearerInterceptor(token: "123")
+        _ = try await service.perform(
+            urlSession: session,
+            requestInterceptors: [bearer]
+        ) as Data
+        XCTAssertEqual(session.lastRequest?.value(forHTTPHeaderField: "Authorization"), "Bearer 123")
     }
 }
 
