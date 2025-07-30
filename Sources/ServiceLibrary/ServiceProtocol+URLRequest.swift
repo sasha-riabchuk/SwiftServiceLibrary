@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 extension ServiceProtocol {
     /// A value that identifies the location of a resource for this service.
@@ -11,7 +14,7 @@ extension ServiceProtocol {
     }
 
     /// A URL request for this service
-    public func urlRequest(authorizationPlugin: AuthorizationPlugin? = nil, baseUrl: URL? = nil) throws -> URLRequest {
+    public func urlRequest(baseUrl: URL? = nil) throws -> URLRequest {
         guard let url = url(baseUrl: baseUrl) else {
             throw ServiceProtocolError.invalidURL(self)
         }
@@ -39,11 +42,7 @@ extension ServiceProtocol {
 
         // Headers
         request.allHTTPHeaderFields = headers
-
-        guard let authorizationPlugin else {
-            return request
-        }
-        return authorizationPlugin.prepare(request, service: self)
+        return request
     }
 }
 

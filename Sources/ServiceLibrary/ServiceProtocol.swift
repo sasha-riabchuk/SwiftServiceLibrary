@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public protocol ServiceProtocol {
     /// The target's base `URL`.
@@ -22,6 +25,4 @@ public protocol ServiceProtocol {
     /// A type used to define how a set of parameters are applied to a `URLRequest`.
     var parametersEncoding: BodyParameterEncoding? { get }
 
-    /// A storage for interceptors that can modify requests and responses.
-    var interceptors: InterceptorsStorage? { get }
 }

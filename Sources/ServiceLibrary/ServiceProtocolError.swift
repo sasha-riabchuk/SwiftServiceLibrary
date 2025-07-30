@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public enum ServiceProtocolError: Error {
     case invalidURL(any ServiceProtocol)
