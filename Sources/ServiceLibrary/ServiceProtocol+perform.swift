@@ -3,12 +3,16 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public protocol URLSessionProtocol {
+/// Abstraction of ``URLSession`` used for testing and injection.
+public protocol URLSessionProtocol: Sendable {
+    /// Performs a data request.
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
+
+    /// Performs a data upload request.
     func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse)
 }
 
-extension URLSession: URLSessionProtocol {
+extension URLSession: URLSessionProtocol, @unchecked Sendable {
     public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         try await data(for: request, delegate: nil)
     }
@@ -36,7 +40,7 @@ extension ServiceProtocol {
         decoder: JSONDecoder = .init(),
         handleResponse: ((Data, URLResponse) throws -> D)? = nil
     ) async throws -> D {
-        var urlRequest = try urlRequest(baseUrl: baseUrl)
+        var urlRequest = try await urlRequest(baseUrl: baseUrl)
 
         urlRequest.addCookies()
 
@@ -90,7 +94,7 @@ extension ServiceProtocol {
         decoder: JSONDecoder = JSONDecoder(),
         handleResponse: ((Data, URLResponse) throws -> D)? = nil
     ) async throws -> D {
-        var urlRequest = try urlRequest(baseUrl: baseUrl)
+        var urlRequest = try await urlRequest(baseUrl: baseUrl)
 
         // set cookies
         urlRequest.addCookies()

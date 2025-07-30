@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 @testable import ServiceLibrary
 import XCTest
 
@@ -16,7 +19,13 @@ class RetryInterceptorTests: XCTestCase {
 
     func testPerformRetriesOnRetryableStatusCode() async {
         let retryableStatusCode = 429
-        urlSession.mockResponse = HTTPURLResponse(url: URL(string: "https://test.com")!, statusCode: retryableStatusCode, httpVersion: nil, headerFields: nil)
+        urlSession.mockResponse = HTTPURLResponse(
+            url: URL(string: "https://test.com")!,
+            statusCode: retryableStatusCode,
+            httpVersion: nil,
+            headerFields: [:]
+        )!
+        urlSession.mockError = URLError(.badServerResponse)
         urlSession.mockData = Data()
 
         do {

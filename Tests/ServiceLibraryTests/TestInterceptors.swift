@@ -38,7 +38,7 @@ struct RetryInterceptor: ResponseInterceptor {
     }
 }
 
-class MockURLSession: URLSessionProtocol {
+class MockURLSession: URLSessionProtocol, @unchecked Sendable {
     var mockData: Data?
     var mockResponse: URLResponse?
     var mockError: Error?
@@ -46,14 +46,14 @@ class MockURLSession: URLSessionProtocol {
     var lastRequest: URLRequest?
 
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        dataTaskCallCount += 1
         lastRequest = request
-        if let mockError = mockError {
+        if let mockError {
             throw mockError
         }
         guard let mockData, let mockResponse else {
             throw NSError(domain: "MockURLSessionError", code: 1, userInfo: nil)
         }
-        dataTaskCallCount += 1
         return (mockData, mockResponse)
     }
 

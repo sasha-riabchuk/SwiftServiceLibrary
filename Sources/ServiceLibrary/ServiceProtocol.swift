@@ -3,7 +3,9 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public protocol ServiceProtocol {
+/// A type describing an HTTP endpoint.
+@preconcurrency
+public protocol ServiceProtocol: Sendable {
     /// The target's base `URL`.
     var baseURL: URL? { get }
 
