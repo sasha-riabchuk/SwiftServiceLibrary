@@ -4,8 +4,7 @@ import Foundation
 #endif
 
 /// A type describing an HTTP endpoint.
-@preconcurrency
-public protocol ServiceProtocol: Sendable {
+public protocol Endpoint: Sendable {
     /// The target's base `URL`.
     var baseURL: URL? { get }
 

@@ -2,14 +2,14 @@ import Foundation
 #if canImport(FoundationNetworking)
     import FoundationNetworking
 #endif
-@testable import ServiceLibrary
+@testable import EdiNetworkKit
 import XCTest
 
 enum MockService {
     case getUsers
 }
 
-extension MockService: ServiceProtocol, BearerAuthorizable {
+extension MockService: Endpoint, BearerAuthorizable {
     var baseURL: URL? {
         URL(string: "https://mock.com")
     }
@@ -21,7 +21,7 @@ extension MockService: ServiceProtocol, BearerAuthorizable {
         }
     }
 
-    var httpMethod: ServiceLibrary.HTTPMethod {
+    var httpMethod: HTTPMethod {
         switch self {
         case .getUsers:
             return .get
@@ -46,7 +46,7 @@ extension MockService: ServiceProtocol, BearerAuthorizable {
         }
     }
 
-    var parametersEncoding: ServiceLibrary.BodyParameterEncoding? {
+    var parametersEncoding: BodyParameterEncoding? {
         switch self {
         case .getUsers:
             return .formUrlEncoded
@@ -54,7 +54,7 @@ extension MockService: ServiceProtocol, BearerAuthorizable {
     }
 }
 
-final class ServiceLibraryTests: XCTestCase {
+final class EdiNetworkKitTests: XCTestCase {
     func testGetUrl() async throws {
         let urlRequest: URLRequest = try await MockService.getUsers.urlRequest()
         XCTAssertEqual(urlRequest.url?.absoluteString, "https://mock.com/users")

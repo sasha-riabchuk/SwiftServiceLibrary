@@ -3,8 +3,8 @@ import Foundation
     import FoundationNetworking
 #endif
 
-public enum ServiceProtocolError: Error, Sendable {
-    case invalidURL(any ServiceProtocol)
+public enum EndpointError: Error, Sendable {
+    case invalidURL(any Endpoint)
     /// ResponseCode
     case responseCode(Int)
     /// Unexpected Response

@@ -22,10 +22,10 @@ extension URLSession: URLSessionProtocol, @unchecked Sendable {
     }
 }
 
-extension ServiceProtocol {
+extension Endpoint {
     /// Designated request-making method.
     /// - Parameters:
-    ///   - baseUrl: Optional service base URL overriding `ServiceProtocol.baseURL`.
+    ///   - baseUrl: Optional service base URL overriding `Endpoint.baseURL`.
     ///   - urlSession: The URL session used to perform requests.
     ///   - requestInterceptors: Interceptors executed before the request is sent.
     ///   - responseInterceptors: Interceptors executed after the request is sent.
@@ -60,7 +60,7 @@ extension ServiceProtocol {
                 tmpResponse = result.1
             }
             guard let unwrappedData = tmpData, let unwrappedResponse = tmpResponse else {
-                throw ServiceProtocolError.interceptorError
+                throw EndpointError.interceptorError
             }
             (data, urlResponse) = (unwrappedData, unwrappedResponse)
         }
@@ -77,7 +77,7 @@ extension ServiceProtocol {
     /// Uploads data to a URL based on the specified URL request.
     /// - Parameters:
     ///   - authorizationPlugin: A Plugin receives callbacks to perform side effects wherever a request is sent.
-    ///   - baseUrl: The service's base `URL`. If provided,  it will be used in preference to `ServiceProtocol.baseURL`
+    ///   - baseUrl: The service's base `URL`. If provided,  it will be used in preference to `Endpoint.baseURL`
     ///   - urlSession: URL Sessions for a request.
     ///   - logger: Logger to log message of requests made.
     ///   - decoder: An object that decodes instances of a data type from JSON objects.
@@ -133,7 +133,7 @@ extension ServiceProtocol {
                 tmpResponse = result.1
             }
             guard let unwrappedData = tmpData, let unwrappedResponse = tmpResponse else {
-                throw ServiceProtocolError.interceptorError
+                throw EndpointError.interceptorError
             }
             (data, urlResponse) = (unwrappedData, unwrappedResponse)
         }
@@ -155,8 +155,8 @@ extension ServiceProtocol {
     ///   - successCodes: Set of HTTP status codes to consider as successful responses.
     ///                   Defaults to the range 200...299.
     /// - Returns: The custom decoded object.
-    /// - Throws: `ServiceProtocolError.unexpectedResponse` if the URL response is not an HTTPURLResponse,
-    ///           or `ServiceProtocolError.responseCode` if the response status code is not within the successCodes.
+    /// - Throws: `EndpointError.unexpectedResponse` if the URL response is not an HTTPURLResponse,
+    ///           or `EndpointError.responseCode` if the response status code is not within the successCodes.
     ///
     /// - Example:
     ///   ```
@@ -180,14 +180,13 @@ extension ServiceProtocol {
         successCodes: Set<Int> = Set(200 ... 299)
     ) throws -> D {
         guard let response = urlResponse as? HTTPURLResponse else {
-            throw ServiceProtocolError.unexpectedResponse(urlResponse as? HTTPURLResponse)
+            throw EndpointError.unexpectedResponse(urlResponse as? HTTPURLResponse)
         }
 
         guard successCodes.contains(response.statusCode) else {
-            throw ServiceProtocolError.responseCode(response.statusCode)
+            throw EndpointError.responseCode(response.statusCode)
         }
         do {
-            let string = String(data: data, encoding: .utf8)
             return try decoder.decode(D.self, from: data)
         } catch {
             throw error

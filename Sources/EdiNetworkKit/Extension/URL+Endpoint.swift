@@ -4,7 +4,7 @@ import Foundation
 #endif
 
 extension URL {
-    public init?<T: ServiceProtocol>(service: T, baseUrl: URL? = nil) {
+    public init?<T: Endpoint>(service: T, baseUrl: URL? = nil) {
         guard let baseUrl = baseUrl ?? service.baseURL else {
             return nil
         }
