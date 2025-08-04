@@ -1,6 +1,6 @@
 import Foundation
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 
 /// Abstraction of ``URLSession`` used for testing and injection.
@@ -47,8 +47,6 @@ extension ServiceProtocol {
         for interceptor in requestInterceptors {
             urlRequest = try await interceptor.adapt(urlRequest, service: self, for: urlSession)
         }
-
-        debugPrint(urlRequest.cURL())
 
         let (data, urlResponse): (Data, URLResponse)
         if responseInterceptors.isEmpty {
@@ -117,8 +115,6 @@ extension ServiceProtocol {
         for interceptor in requestInterceptors {
             urlRequest = try await interceptor.adapt(urlRequest, service: self, for: urlSession)
         }
-
-        debugPrint(urlRequest.cURL())
 
         let performUpload: () async throws -> (Data, URLResponse) = {
             try await urlSession.upload(for: urlRequest, from: requestData)

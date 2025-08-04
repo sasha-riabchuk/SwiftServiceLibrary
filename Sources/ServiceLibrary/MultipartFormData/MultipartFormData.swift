@@ -1,6 +1,6 @@
 import Foundation
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 
 #if os(iOS) || os(watchOS) || os(tvOS)
@@ -55,7 +55,11 @@ open class MultipartFormData: @unchecked Sendable {
 
     /// The boundary used to separate the body parts in the encoded form data.
     public let boundary: String
+
+    /// The body parts that have been appended to the instance.
     private var bodyParts: [BodyPart]
+
+    /// The size of the read/write buffer used for input and output streams.
     private let streamBufferSize: Int
 
     // MARK: - Lifecycle

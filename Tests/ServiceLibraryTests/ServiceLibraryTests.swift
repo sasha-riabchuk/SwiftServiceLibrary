@@ -1,6 +1,6 @@
 import Foundation
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 @testable import ServiceLibrary
 import XCTest
@@ -52,7 +52,6 @@ extension MockService: ServiceProtocol, BearerAuthorizable {
             return .formUrlEncoded
         }
     }
-
 }
 
 final class ServiceLibraryTests: XCTestCase {
@@ -76,7 +75,12 @@ final class URLEncodedFormParameterEncoderTests: XCTestCase {
         let service = MockService.getUsers
         let session = MockURLSession()
         session.mockData = "{}".data(using: .utf8)
-        session.mockResponse = HTTPURLResponse(url: URL(string: "https://mock.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
+        session.mockResponse = HTTPURLResponse(
+            url: URL(string: "https://mock.com")!,
+            statusCode: 200,
+            httpVersion: nil,
+            headerFields: nil
+        )
 
         let bearer = BearerInterceptor(token: "123")
         _ = try await service.perform(

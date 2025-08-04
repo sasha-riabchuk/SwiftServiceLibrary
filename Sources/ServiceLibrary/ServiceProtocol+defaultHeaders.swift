@@ -1,9 +1,9 @@
 import Foundation
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 #if canImport(CoreFoundation)
-import CoreFoundation
+    import CoreFoundation
 #endif
 
 extension ServiceProtocol {

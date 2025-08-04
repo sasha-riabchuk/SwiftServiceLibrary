@@ -1,6 +1,6 @@
 import Foundation
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 @testable import ServiceLibrary
 
@@ -16,6 +16,7 @@ actor BearerInterceptor: RequestInterceptor {
     init(token: String) {
         _token = TokenStorage(wrappedValue: token)
     }
+
     func adapt(_ request: URLRequest, service: any ServiceProtocol, for _: URLSessionProtocol) async throws -> URLRequest {
         guard service is BearerAuthorizable else { return request }
         var r = request
@@ -26,8 +27,12 @@ actor BearerInterceptor: RequestInterceptor {
 
 struct RetryInterceptor: ResponseInterceptor {
     let retryCount: Int
-    func intercept(_ request: URLRequest, service _: any ServiceProtocol, for session: URLSessionProtocol) async throws -> (Data, URLResponse) {
-        for attempt in 0...retryCount {
+    func intercept(
+        _ request: URLRequest,
+        service _: any ServiceProtocol,
+        for session: URLSessionProtocol
+    ) async throws -> (Data, URLResponse) {
+        for attempt in 0 ... retryCount {
             do {
                 return try await session.data(for: request)
             } catch {
@@ -57,11 +62,8 @@ class MockURLSession: URLSessionProtocol, @unchecked Sendable {
         return (mockData, mockResponse)
     }
 
-    func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
+    func upload(for request: URLRequest, from _: Data) async throws -> (Data, URLResponse) {
         lastRequest = request
         return try await data(for: request)
     }
 }
-
-
-

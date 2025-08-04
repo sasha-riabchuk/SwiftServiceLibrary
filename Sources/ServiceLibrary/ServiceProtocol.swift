@@ -1,6 +1,6 @@
 import Foundation
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 
 /// A type describing an HTTP endpoint.
@@ -26,5 +26,4 @@ public protocol ServiceProtocol: Sendable {
 
     /// A type used to define how a set of parameters are applied to a `URLRequest`.
     var parametersEncoding: BodyParameterEncoding? { get }
-
 }

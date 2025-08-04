@@ -1,6 +1,6 @@
 import Foundation
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 
 public enum ServiceProtocolError: Error, Sendable {
@@ -9,8 +9,6 @@ public enum ServiceProtocolError: Error, Sendable {
     case responseCode(Int)
     /// Unexpected Response
     case unexpectedResponse(HTTPURLResponse?)
-
-    case anotherError
-
+    /// Interceptor Error
     case interceptorError
 }

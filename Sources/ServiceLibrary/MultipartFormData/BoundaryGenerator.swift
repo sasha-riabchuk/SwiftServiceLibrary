@@ -1,13 +1,15 @@
 import Foundation
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 
 enum BoundaryGenerator: Sendable {
     typealias EncodingCharacters = MultipartFormData.EncodingCharacters
 
     enum BoundaryType: Sendable {
-        case initial, encapsulated, final
+        case initial
+        case encapsulated
+        case final
     }
 
     static func randomBoundary() -> String {
