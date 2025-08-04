@@ -1,34 +1,32 @@
-# ServiceLibrary
+# EdiNetworkKit
 
-Swift micro library providing simple HTTP service abstractions. It defines a `ServiceProtocol` describing an endpoint and utilities for building and executing `URLRequest`s. It also includes helpers for multipart uploads and request interception.
-
-The library is thread safe and built with Swift's strict concurrency checking enabled. All public types conform to `Sendable` where possible.
+EdiNetworkKit is a lightweight Swift networking layer that focuses on defining HTTP endpoints in a concise way. It ships with helpers for building and executing `URLRequest`s, handling multipart uploads and composing request/response interceptors. The codebase is built with Swift's strict concurrency checking enabled so types are safe to use from concurrent contexts.
 
 ## Installation
 
 Add the package to your `Package.swift` dependencies:
 
 ```swift
-.package(url: "https://github.com/yourOrg/ServiceLibrary.git", from: "1.0.0")
+.package(url: "https://github.com/yourOrg/EdiNetworkKit.git", from: "1.0.0")
 ```
 
-Then add `ServiceLibrary` as a dependency for your target.
+Then add `EdiNetworkKit` as a dependency for your target.
 
 ## Basic Usage
 
-Create an enum describing your API and conform it to `ServiceProtocol`:
+Create an enum describing your API and conform it to `Endpoint`:
 
 ```swift
 enum MyService {
     case users
 }
 
-extension MyService: ServiceProtocol {
+extension MyService: Endpoint {
     var baseURL: URL? { URL(string: "https://example.com") }
     var path: String? {
         switch self { case .users: return "/users" }
     }
-    var httpMethod: HttpMethod { .get }
+    var httpMethod: HTTPMethod { .get }
     var headers: [String: String]? { defaultHeaders().dictionary }
     var queryItems: [URLQueryItem]? { nil }
     var parameters: [String: Any]? { nil }
@@ -59,15 +57,14 @@ form.append(data, withName: "file", fileName: "file.dat", mimeType: "application
 
 ## Interceptors
 
-`ServiceLibrary` does not ship with concrete interceptors but provides the `RequestInterceptor` and
-`ResponseInterceptor` protocols so you can implement your own middleware.
+`EdiNetworkKit` does not ship with concrete interceptors but provides the `RequestInterceptor` and `ResponseInterceptor` protocols so you can implement your own middleware. Interceptors can adapt requests (for example to inject authentication headers) or inspect responses before they are returned.
 
 ```swift
 actor BearerInterceptor: RequestInterceptor {
     private let token: String
     init(token: String) { self.token = token }
 
-    func adapt(_ request: URLRequest, service: any ServiceProtocol, for _: URLSessionProtocol) async throws -> URLRequest {
+    func adapt(_ request: URLRequest, service: any Endpoint, for _: URLSessionProtocol) async throws -> URLRequest {
         var r = request
         r.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         return r
@@ -82,7 +79,7 @@ let data: Data = try await MyService.users.perform(
 )
 ```
 
-The accompanying unit tests demonstrate how a retry interceptor can be composed for testing purposes.
+The accompanying unit tests demonstrate how a retry interceptor can be composed for testing purposes. You can use those as inspiration to build logging, retry or metrics interceptors.
 
 ## License
 

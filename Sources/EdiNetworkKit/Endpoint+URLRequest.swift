@@ -3,7 +3,7 @@ import Foundation
     import FoundationNetworking
 #endif
 
-extension ServiceProtocol {
+extension Endpoint {
     /// A value that identifies the location of a resource for this service.
     public func url(baseUrl: URL? = nil) -> URL? {
         guard let url = URL(service: self, baseUrl: baseUrl) else { return nil }
@@ -15,11 +15,11 @@ extension ServiceProtocol {
 
     /// Creates a ``URLRequest`` for this service.
     ///
-    /// - Parameter baseUrl: Optional base URL overriding ``ServiceProtocol.baseURL``.
+    /// - Parameter baseUrl: Optional base URL overriding ``Endpoint.baseURL``.
     /// - Returns: Configured ``URLRequest``.
     public func urlRequest(baseUrl: URL? = nil) async throws -> URLRequest {
         guard let url = url(baseUrl: baseUrl) else {
-            throw ServiceProtocolError.invalidURL(self)
+            throw EndpointError.invalidURL(self)
         }
 
         var request = URLRequest(url: url)
@@ -49,7 +49,7 @@ extension ServiceProtocol {
     }
 }
 
-extension ServiceProtocol {
+extension Endpoint {
     func jsonEncodedParameters() throws -> Data {
         try JSONSerialization.data(withJSONObject: parameters ?? [:], options: [])
     }

@@ -2,7 +2,7 @@ import Foundation
 #if canImport(FoundationNetworking)
     import FoundationNetworking
 #endif
-@testable import ServiceLibrary
+@testable import EdiNetworkKit
 
 protocol BearerAuthorizable {}
 
@@ -17,7 +17,7 @@ actor BearerInterceptor: RequestInterceptor {
         _token = TokenStorage(wrappedValue: token)
     }
 
-    func adapt(_ request: URLRequest, service: any ServiceProtocol, for _: URLSessionProtocol) async throws -> URLRequest {
+    func adapt(_ request: URLRequest, service: any Endpoint, for _: URLSessionProtocol) async throws -> URLRequest {
         guard service is BearerAuthorizable else { return request }
         var r = request
         r.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -29,7 +29,7 @@ struct RetryInterceptor: ResponseInterceptor {
     let retryCount: Int
     func intercept(
         _ request: URLRequest,
-        service _: any ServiceProtocol,
+        service _: any Endpoint,
         for session: URLSessionProtocol
     ) async throws -> (Data, URLResponse) {
         for attempt in 0 ... retryCount {
@@ -39,7 +39,7 @@ struct RetryInterceptor: ResponseInterceptor {
                 if attempt == retryCount { throw error }
             }
         }
-        throw ServiceProtocolError.interceptorError
+        throw EndpointError.interceptorError
     }
 }
 

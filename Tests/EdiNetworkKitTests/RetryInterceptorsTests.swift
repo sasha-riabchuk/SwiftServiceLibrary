@@ -2,13 +2,13 @@ import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
-@testable import ServiceLibrary
+@testable import EdiNetworkKit
 import XCTest
 
 struct EmptyModel: Codable {}
 
 class RetryInterceptorTests: XCTestCase {
-    var sut: ServiceProtocol!
+    var sut: Endpoint!
     var urlSession: MockURLSession!
 
     override func setUp() {

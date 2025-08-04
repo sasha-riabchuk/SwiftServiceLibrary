@@ -4,26 +4,26 @@
 import PackageDescription
 
 let package = Package(
-    name: "ServiceLibrary",
+    name: "EdiNetworkKit",
     platforms: [
         .iOS(.v15), .macOS(.v12)
     ],
     products: [
         .library(
-            name: "ServiceLibrary",
-            targets: ["ServiceLibrary"]
+            name: "EdiNetworkKit",
+            targets: ["EdiNetworkKit"]
         )
     ],
     dependencies: [],
     targets: [
         .target(
-            name: "ServiceLibrary",
+            name: "EdiNetworkKit",
             dependencies: [],
             swiftSettings: [.enableUpcomingFeature("StrictConcurrency")]
         ),
         .testTarget(
-            name: "ServiceLibraryTests",
-            dependencies: ["ServiceLibrary"]
+            name: "EdiNetworkKitTests",
+            dependencies: ["EdiNetworkKit"]
         )
     ]
 )

@@ -8,12 +8,12 @@ public protocol ResponseInterceptor: Sendable {
     /// Allows custom handling of a request and returns the response.
     /// - Parameters:
     ///   - request: The request to execute.
-    ///   - service: The service that generated the request.
+    ///   - service: The endpoint that generated the request.
     ///   - session: The session performing the request.
     /// - Returns: The data and response produced by the session.
     func intercept(
         _ request: URLRequest,
-        service: any ServiceProtocol,
+        service: any Endpoint,
         for session: URLSessionProtocol
     ) async throws
         -> (Data, URLResponse)

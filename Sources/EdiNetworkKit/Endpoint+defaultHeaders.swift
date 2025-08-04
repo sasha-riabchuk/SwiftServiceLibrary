@@ -6,7 +6,7 @@ import Foundation
     import CoreFoundation
 #endif
 
-extension ServiceProtocol {
+extension Endpoint {
     ///
     /// This function configures the content type of the request based on the encoding of the parameters
     /// and the specified string encoding.
